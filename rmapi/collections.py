@@ -10,9 +10,11 @@ class Collection(object):
     """A collection of meta items
 
     This is basicly the content of the Remarkable Cloud.
+
     Attributes:
         items: A list containing the items.
     """
+
     items = []
 
     def __init__(self, *items):
@@ -42,6 +44,7 @@ class Collection(object):
         Args:
             docdict: A dict respresenting a document.
         """
+
         self.items.append(Document(**docdict))
 
     def add_folder(self, dirdict: dict) -> NoReturn:
@@ -50,6 +53,7 @@ class Collection(object):
         Args:
             dirdict: A dict respresenting a folder.
         """
+
         self.items.append(Folder(**dirdict))
 
     def parent(self, docorfolder: DocOrFolder) -> Folder:
@@ -77,6 +81,7 @@ class Collection(object):
         Returns:
             a list of documents an folders.
         """
+
         if folder:
             return [i for i in self.items if i.Parent == folder.ID]
         else:

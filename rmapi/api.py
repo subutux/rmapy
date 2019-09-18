@@ -31,6 +31,7 @@ class Client(object):
         token_set: the authentication tokens
 
     """
+
     token_set = {
         "devicetoken": None,
         "usertoken": None
@@ -63,8 +64,8 @@ class Client(object):
         Returns:
             A Response instance containing most likely the response from
             the server.
-
         """
+
         if not path.startswith("http"):
             if not path.startswith('/'):
                 path = '/' + path
@@ -107,8 +108,8 @@ class Client(object):
         Raises:
             AuthError: We didn't recieved an devicetoken from the Remarkable
                 Cloud.
-
         """
+
         uuid = str(uuid4())
         body = {
             "code": code,
@@ -158,6 +159,7 @@ class Client(object):
         Returns:
             bool: True if the client is authenticated
         """
+
         if self.token_set["devicetoken"] and self.token_set["usertoken"]:
             return True
         else:
@@ -172,8 +174,8 @@ class Client(object):
         Returns:
             Collection: a collection of Documents & Folders from the Remarkable
                 Cloud
-
         """
+
         response = self.request("GET", "/document-storage/json/2/docs")
         collection = Collection()
         log.debug(response.text)
@@ -259,8 +261,8 @@ class Client(object):
         Args:
             docorfolder: A document or folder to update the meta information
                 from.
-
         """
+
         req = docorfolder.to_dict()
         req["Version"] = self.get_current_version(docorfolder) + 1
         req["ModifiedClient"] = datetime.utcnow().strftime(RFC3339Nano)
@@ -284,6 +286,7 @@ class Client(object):
             DocumentNotFound: cannot find the requested Document or Folder.
             ApiError: An error occured while processing the request.
         """
+
         try:
             d = self.get_doc(docorfolder.ID)
         except DocumentNotFound:
@@ -305,8 +308,8 @@ class Client(object):
             folder: A folder instance.
         Returns:
             True if the folder is created.
-
         """
+
         zipFolder, req = folder.create_request()
         res = self.request("PUT", "/document-storage/json/2/upload/request",
                            body=[req])
@@ -341,6 +344,7 @@ class Client(object):
         Raises:
             ApiError: When the response contains an error
         """
+
         if response.ok:
             if len(response.json()) > 0:
                 if response.json()[0]["Success"]:

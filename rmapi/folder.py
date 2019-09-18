@@ -11,6 +11,7 @@ class ZipFolder(object):
 
     This is needed to create a folder on the Remarkable Cloud
     """
+
     def __init__(self, ID: str):
         """Creates a zipfile in memory
 
@@ -64,6 +65,7 @@ class Folder(Document):
 
         This sets some parameters in the datastructure to submit to the API.
         """
+
         data = self.to_dict()
         data["Version"] = data.get("Version", 0) + 1
         data["ModifiedClient"] = datetime.utcnow().strftime(RFC3339Nano)
