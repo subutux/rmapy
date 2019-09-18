@@ -18,7 +18,7 @@ from .const import (RFC3339Nano,
 
 log = getLogger("rmapipy.rmapi")
 
-DocOrFolder = TypeVar('A', Document, Folder)
+DocOrFolder = TypeVar('DocumentOrFolder', Document, Folder)
 
 
 class Client(object):
@@ -296,9 +296,12 @@ class Client(object):
         """Create a new folder meta object.
 
         This needs to be done in 3 steps:
-        1. Create an upload request for a new CollectionType meta object
+
+        1. Create an upload request for a new CollectionType meta object.
+
         2. Upload a zipfile with a *.content file containing
-           an empty object
+        an empty object.
+
         3. Update the meta object with the new name.
 
         Args:

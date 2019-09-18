@@ -2,7 +2,7 @@ from .document import Document
 from .folder import Folder
 from typing import NoReturn, TypeVar
 
-DocOrFolder = TypeVar('A', Document, Folder)
+DocOrFolder = TypeVar('DocumentOrFolder', Document, Folder)
 
 
 class Collection(object):
