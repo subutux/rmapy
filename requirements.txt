@@ -1,0 +1,4 @@
+requests
+pyaml==19.4.1
+sphinx==2.2.0
+
