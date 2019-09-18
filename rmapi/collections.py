@@ -30,6 +30,36 @@ class Collection(object):
     def addFolder(self, dirdict: dict) -> NoReturn:
         self.items.append(Folder(**dirdict))
 
+    def parent(self, docorfolder: DocOrFolder) -> Folder:
+        """Returns the paren of a Document or Folder
+
+        Args:
+            docorfolder: A document or folder to get the parent from
+
+        Returns:
+            The parent folder.
+        """
+
+        results = [i for i in self.items if i.ID == docorfolder.ID]
+        if len(results) > 0:
+            return results[0]
+        else:
+            raise FolderNotFound("Could not found the parent of the document.")
+
+    def children(self, folder: Folder = None) -> List[DocOrFolder]:
+        """Get all the childern from a folder
+
+        Args:
+            folder: A folder where to get the children from. If None, this will
+                get the children in the root.
+        Returns:
+            a list of documents an folders.
+        """
+        if folder:
+            return [i for i in self.items if i.Parent == folder.ID]
+        else:
+            return [i for i in self.items if i.Parent == ""]
+
     def __len__(self) -> int:
         return len(self.items)
 
