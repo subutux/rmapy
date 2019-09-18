@@ -297,12 +297,9 @@ class Client(object):
 
         This needs to be done in 3 steps:
 
-        1. Create an upload request for a new CollectionType meta object.
-
-        2. Upload a zipfile with a *.content file containing
-        an empty object.
-
-        3. Update the meta object with the new name.
+        #. Create an upload request for a new CollectionType meta object.
+        #. Upload a zipfile with a *.content file containing an empty object.
+        #. Update the meta object with the new name.
 
         Args:
             folder: A folder instance.

@@ -8,7 +8,8 @@ Welcome to rmapi's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+
+   rmapi
 
 .. automodule:: rmapi
 

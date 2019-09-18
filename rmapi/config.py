@@ -4,8 +4,7 @@ from yaml import dump as yml_dump
 
 
 def load() -> dict:
-    """
-    Load the .rmapi config file
+    """Load the .rmapi config file
     """
 
     config_file_path = Path.joinpath(Path.home(), ".rmapi")
@@ -18,8 +17,11 @@ def load() -> dict:
 
 
 def dump(config: dict) -> True:
-    """
-    Dump config to the .rmapi config file
+    """Dump config to the .rmapi config file
+
+    Args:
+        config: A dict containing data to dump to the .rmapi
+            config file.
     """
 
     config_file_path = Path.joinpath(Path.home(), ".rmapi")

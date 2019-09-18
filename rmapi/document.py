@@ -3,13 +3,36 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import shutil
 from uuid import uuid4
 import json
-from typing import NoReturn
+from typing import NoReturn, TypeVar
 from requests import Response
+
+BytesOrString = TypeVar("BytesOrString", BytesIO, str)
 
 
 class Document(object):
     """ Document represents a real object expected in most
-    calls by the remarkable API"""
+    calls by the remarkable API
+
+    This contains the metadata from a document.
+
+    Attributes:
+        ID: Id of the meta object.
+        Version: The version of this object.
+        Success: If the last API Call was a succes.
+        BlobURLGet: The url to get the data blob from. Can be empty.
+        BlobURLGetExpires: The expiration date of the Get url.
+        BlobURLPut: The url to upload the data blob to. Can be empty.
+        BlobURLPutExpires: The expiration date of the Put url.
+        ModifiedClient: When the last change was by the client.
+        Type: Currently there are only 2 known types: DocumentType &
+            CollectionType.
+        VissibleName: The human name of the object.
+        CurrentPage: The current selected page of the object.
+        Bookmarked: If the object is bookmarked.
+        Parent: If empty, this object is is the root folder. This can be an ID
+            of a CollectionType.
+
+    """
 
     ID = ""
     Version = 0
@@ -31,7 +54,15 @@ class Document(object):
         for k in kkeys:
             setattr(self, k, kwargs.get(k, getattr(self, k)))
 
-    def to_dict(self):
+    def to_dict(self) -> dict:
+        """Return a dict representation of this object.
+
+        Used for API Calls.
+
+        Returns
+            a dict of the current object.
+        """
+
         return {
             "ID": self.ID,
             "Version": self.Version,
@@ -50,20 +81,23 @@ class Document(object):
         }
 
     def __str__(self):
+        """String representation of this object"""
         return f"<rmapi.document.Document {self.ID}>"
 
     def __repr__(self):
+        """String representation of this object"""
         return self.__str__()
 
 
 class ZipDocument(object):
     """
     Here is the content of an archive retried on the tablet as example:
-    384327f5-133e-49c8-82ff-30aa19f3cfa40.content
-    384327f5-133e-49c8-82ff-30aa19f3cfa40-metadata.json
-    384327f5-133e-49c8-82ff-30aa19f3cfa40.rm
-    384327f5-133e-49c8-82ff-30aa19f3cfa40.pagedata
-    384327f5-133e-49c8-82ff-30aa19f3cfa40.thumbnails/0.jpg
+
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.content
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40-metadata.json
+    * 384326f5-133e-49c8-82ff-30aa19f3cfa40.rm
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.pagedata
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.thumbnails/0.jpg
 
     As the .zip file from remarkable is simply a normal .zip file
     containing specific file formats, this package is a helper to
@@ -76,6 +110,16 @@ class ZipDocument(object):
 
     You can find some help about the format at the following URL:
     https://remarkablewiki.com/tech/filesystem
+
+    Attributes:
+        content: Sane defaults for the .content file in the zip.
+        metadata: parameters describing this blob.
+        pagedata: the content of the .pagedata file.
+        zipfile: The raw zipfile in memory.
+        pdf: the raw pdf file if there is one.
+        epub: the raw epub file if there is one.
+        rm: A list of :class:rmapi.document.RmPage in this zip.
+
     """
     content = {
         "ExtraMetadata": {
@@ -114,6 +158,7 @@ class ZipDocument(object):
             "M33": 1,
         }
     }
+
     metadata = {
         "deleted": False,
         "lastModified": "1568368808000",
@@ -136,6 +181,13 @@ class ZipDocument(object):
     ID = None
 
     def __init__(self, ID=None, doc=None, file=None):
+        """Create a new instance of a ZipDocument
+
+        Args:
+            ID: Can be left empty to generate one
+            doc: a raw pdf, epub or rm (.lines) file.
+            file: a zipfile to convert from
+        """
         if not ID:
             ID = str(uuid4())
         self.ID = ID
@@ -160,15 +212,22 @@ class ZipDocument(object):
         if file:
             self.load(file)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """string representation of this class"""
         return f"<rmapi.document.ZipDocument {self.ID}>"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """string representation of this class"""
         return self.__str__()
 
-    def dump(self, file):
-        """
-        Dump the contents of ZipDocument back to a zip file
+    def dump(self, file: str) -> NoReturn:
+        """Dump the contents of ZipDocument back to a zip file.
+
+        This builds a zipfile to upload back to the Remarkable Cloud.
+
+        Args:
+            file: Where to save the zipfile
+
         """
 
         with ZipFile(f"{file}.zip", "w", ZIP_DEFLATED) as zf:
@@ -198,10 +257,16 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
                             page.thumbnail.read())
 
-    def load(self, file) -> NoReturn:
+    def load(self, file: BytesOrString) -> NoReturn:
+        """Load a zipfile into this class.
+
+        Extracts the zipfile and reads in the contents.
+
+        Args:
+            file: A string of a file location or a BytesIO instance of a raw
+                zipfile
         """
-        Fill in the defaults from the given ZIP
-        """
+
         self.zipfile = BytesIO()
         self.zipfile.seek(0)
         if isinstance(file, str):
@@ -265,7 +330,11 @@ class ZipDocument(object):
 
 
 class RmPage(object):
-    """A Remarkable Page"""
+    """A Remarkable Page
+
+    Contains the metadata, the page itself & thumbnail.
+
+    """
     def __init__(self, page, metadata=None, order=0, thumbnail=None, ID=None):
         self.page = page
         if metadata:
@@ -281,24 +350,42 @@ class RmPage(object):
         else:
             self.ID = str(uuid4())
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """String representation of this object"""
         return f"<rmapi.document.RmPage {self.order} for {self.ID}>"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """String representation of this object"""
         return self.__str__()
 
 
 def from_zip(ID: str, file: str) -> ZipDocument:
+    """Return A ZipDocument from a zipfile.
+
+    Create a ZipDocument instance from a zipfile.
+
+    Args:
+        ID: The object ID this zipfile represents.
+        file: the filename of the zipfile.
+    Returns:
+        An instance of the supplied zipfile.
     """
-    Return A ZipDocument from a zipfile.
-    """
+
     return ZipDocument(ID, file=file)
 
 
 def from_request_stream(ID: str, stream:  Response) -> ZipDocument:
+    """Return a ZipDocument from a request stream containing a zipfile.
+
+    This is used with the BlobGETUrl from a :class:`rmapi.document.Document`.
+
+    Args:
+        ID: The object ID this zipfile represents.
+        stream: a stream containing the zipfile.
+    Returns:
+        the object of the downloaded zipfile.
     """
-    Return a ZipDocument from a request stream containing a zipfile.
-    """
+
     tmp = BytesIO()
     for chunk in stream.iter_content(chunk_size=8192):
         tmp.write(chunk)
