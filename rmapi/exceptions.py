@@ -10,6 +10,12 @@ class DocumentNotFound(Exception):
         super(DocumentNotFound, self).__init__(msg)
 
 
+class FolderNotFound(Exception):
+    """Could not found a requested folder"""
+    def __init__(self, msg):
+        super(FolderNotFound, self).__init__(msg)
+
+
 class ApiError(Exception):
     """Could not found a requested document"""
     def __init__(self, msg, response=None):
