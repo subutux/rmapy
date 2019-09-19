@@ -18,7 +18,7 @@ API Support
 | ☑️ download a specific file
 | ☑️ create a directory
 | ☑️ move / rename a file or directory
-| ☑️ upload a file
+| ❎ upload a file
 | ❎ delete a file or directory
 | ❎ shell
 | ❎ annotiation exports
