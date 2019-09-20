@@ -14,14 +14,15 @@ Some content
 API Support
 ~~~~~~~~~~~
 
-| ☑️ list files and directories
-| ☑️ download a specific file
-| ☑️ create a directory
-| ☑️ move / rename a file or directory
-| ❎ upload a file
-| ❎ delete a file or directory
-| ❎ shell
-| ❎ annotiation exports
+| ☑️ List content in the cloud
+| ☑️ Work with documents & folders
+| ☑️ create a folder
+| ☑️ move / rename a document or folder
+| ❎ create a document
+| ❎ edit a document
+| ❎ delete a document or folder
+| ❎ cli interface
+| ❎ export pdf with annotations
 
 
 
@@ -32,7 +33,6 @@ Installation
    :maxdepth: 2
 
    installation
-
 
 Quick start
 ~~~~~~~~~~~

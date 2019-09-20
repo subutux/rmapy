@@ -5,5 +5,3 @@ rmapipy
    :maxdepth: 4
 
    rmapi
-
-

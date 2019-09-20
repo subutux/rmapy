@@ -60,6 +60,14 @@ rmapi.folder module
    :undoc-members:
    :show-inheritance:
 
+rmapi.meta module
+-----------------
+
+.. automodule:: rmapi.meta
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 rmapi.types module
 ------------------
 

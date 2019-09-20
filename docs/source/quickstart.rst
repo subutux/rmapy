@@ -40,5 +40,126 @@ and use the code you see on the webpage
 Working with items
 ~~~~~~~~~~~~~~~~~~
 
-The remarkable fs structure is flat containing metadata objects.
+The remarkable fs structure is flat containing metadata objects of two types:
+
+* DocumentType
+* CollectionType
+
+We can list the items in the Cloud:
+
+.. code-block:: python
+   :linenos:
+
+
+    >>> from rmapi.api import Client
+    >>> rmapi = Client()
+    >>> rmapi.renew_token()
+    True
+    >>> collection = rmapi.get_meta_items()
+    >>> collection
+    <rmapi.collections.Collection object at 0x7fa1982d7e90>
+    >>> len(collection)
+    181
+    >>> # Count the amount of documents
+    ... from rmapi.document import Document
+    >>> len([f for f in collection if isinstance(f, Document)])
+    139
+    >>> # Count the amount of folders
+    ... from rmapi.folder import Folder
+    >>> len([f for f in collection if isinstance(f, Folder)])
+    42
+
+
+
+DocumentType
+````````````
+
+A DocumentType is a document. This can be a pdf, epub or notebook.
+These types are represented by the object :class:`rmapi.document.Document`
+
+
+Changing the metadata is easy::
+
+.. code-block:: python
+   :linenos:
+
+
+    >>> from rmapi.api import Client
+    >>> rmapi = Client()
+    >>> rmapi.renew_token()
+    True
+    >>> collection = rmapi.get_meta_items()
+    >>> doc = [ d for d in collection if d.VissibleName == 'ModernC'][0]
+    >>> doc
+    <rmapi.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
+    >>> doc.to_dict()
+    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'ModernC', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
+    >>> doc.VissibleName = "Mordern C: The book of wisdom"
+    >>> # push the changes back to the Remarkable Cloud
+    ... rmapi.update_metadata(doc)
+    True
+    >>> collection = rmapi.get_meta_items()
+    >>> doc = [ d for d in docs if d.VissibleName == 'ModernC'][0]
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    IndexError: list index out of range
+    >>> doc = [ d for d in docs if d.VissibleName == 'Mordern C: The book of wisdom'][0]
+    >>> doc
+    <rmapi.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
+    >>> doc.to_dict()
+    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'Mordern C: The book of wisdom', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
+
+
+CollectionType
+``````````````
+
+
+A CollectionType is a Folder.
+
+These types are represented by the object :class:`rmapi.folder.Folder`
+
+Working with folders is easy!::
+
+.. code-block:: python
+   :linenos:
+
+
+    >>> from rmapi.api import Client
+    >>> rmapi = Client()
+    >>> rmapi.renew_token()
+    True
+    >>> collection = rmapi.get_meta_items()
+    >>> collection
+    <rmapi.collections.Collection object at 0x7fc4718e1ed0>
+    >>> from rmapi.folder import Folder
+    >>> # Get all the folders. Note that the fs of Remarkable is flat in the cloud
+    ... folders = [ f for f in collection if isinstance(f, Folder) ]
+    >>> folders
+    [<rmapi.folder.Folder 028400f5-b258-4563-bf5d-9a47c314668c>, <rmapi.folder.Folder 06a36729-f91e-47da-b334-dc088c1e73d2>, ...]
+    >>> # Get the root folders
+    ... root = [ f for f in folders if f.Parent == "" ]
+    >>> root
+    [<rmapi.folder.Folder 028400f5-b258-4563-bf5d-9a47c314668c>, <rmapi.folder.Folder 5005a085-d7ee-4867-8859-4cd90dee0d62>, ...]
+    >>> # Create a new folder
+    ... new_folder = Folder("New Folder")
+    >>> new_folder
+    <rmapi.folder.Folder 579df08d-7ee4-4f30-9994-887e6341cae3>
+    >>> rmapi.create_folder(new_folder)
+    True
+    >>> # verify
+    ... [ f for f in rmapi.get_meta_items() if f.VissibleName == "New Folder" ]
+    [<rmapi.folder.Folder 579df08d-7ee4-4f30-9994-887e6341cae3>]
+    >>> [ f for f in rmapi.get_meta_items() if f.VissibleName == "New Folder" ][0].ID == new_folder.ID
+    True
+    >>> # Move a document in a folder
+    ... doc = rmapi.get_doc("a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3")
+    >>> doc
+    <rmapi.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
+    >>> doc.Parent = new_folder.ID
+    >>> # Submit the changes
+    ... rmapi.update_metadata(doc)
+    True
+    >>> doc = rmapi.get_doc("a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3")
+    >>> doc.Parent == new_folder.ID
+    True
 
