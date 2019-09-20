@@ -6,7 +6,7 @@
 Welcome to rmapi's documentation!
 =================================
 
-Some content
+This is an (unofficial) Remarkable Cloud API Client written in Python.
 
 .. toctree::
    :maxdepth: 2
