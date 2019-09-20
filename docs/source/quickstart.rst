@@ -94,7 +94,7 @@ Changing the metadata is easy::
     <rmapi.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
     >>> doc.to_dict()
     {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'ModernC', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
-    >>> doc.VissibleName = "Mordern C: The book of wisdom"
+    >>> doc.VissibleName = "Modern C: The book of wisdom"
     >>> # push the changes back to the Remarkable Cloud
     ... rmapi.update_metadata(doc)
     True
@@ -103,11 +103,11 @@ Changing the metadata is easy::
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
     IndexError: list index out of range
-    >>> doc = [ d for d in docs if d.VissibleName == 'Mordern C: The book of wisdom'][0]
+    >>> doc = [ d for d in docs if d.VissibleName == 'Modern C: The book of wisdom'][0]
     >>> doc
     <rmapi.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
     >>> doc.to_dict()
-    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'Mordern C: The book of wisdom', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
+    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'Modern C: The book of wisdom', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
 
 
 CollectionType
