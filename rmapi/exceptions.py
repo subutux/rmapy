@@ -10,6 +10,12 @@ class DocumentNotFound(Exception):
         super(DocumentNotFound, self).__init__(msg)
 
 
+class UnsupportedTypeError(Exception):
+    """Not the expected type"""
+    def __init__(self, msg):
+        super(UnsupportedTypeError, self).__init__(msg)
+
+
 class FolderNotFound(Exception):
     """Could not found a requested folder"""
     def __init__(self, msg):

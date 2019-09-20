@@ -2,13 +2,17 @@ import requests
 from logging import getLogger
 from datetime import datetime
 import json
-from typing import TypeVar
+from typing import Union, Optional
 from uuid import uuid4
 from .collections import Collection
 from .config import load, dump
-from .document import Document, ZipDocument
+from .document import Document, ZipDocument, from_request_stream
 from .folder import Folder
-from .exceptions import AuthError, DocumentNotFound, ApiError
+from .exceptions import (
+    AuthError,
+    DocumentNotFound,
+    ApiError,
+    UnsupportedTypeError,)
 from .const import (RFC3339Nano,
                     USER_AGENT,
                     BASE_URL,
@@ -18,7 +22,7 @@ from .const import (RFC3339Nano,
 
 log = getLogger("rmapipy.rmapi")
 
-DocOrFolder = TypeVar('DocumentOrFolder', Document, Folder)
+DocumentOrFolder = Union[Document, Folder]
 
 
 class Client(object):
@@ -33,8 +37,8 @@ class Client(object):
     """
 
     token_set = {
-        "devicetoken": None,
-        "usertoken": None
+        "devicetoken": "",
+        "usertoken": ""
     }
 
     def __init__(self):
@@ -83,17 +87,19 @@ class Client(object):
         for k in headers.keys():
             _headers[k] = headers[k]
         log.debug(url, _headers)
-        print(method, url, json.dumps(body))
+        if method == "PUT":
+            print(method, url, json.dumps(body))
         r = requests.request(method, url,
                              json=body,
                              data=data,
                              headers=_headers,
                              params=params,
                              stream=stream)
-        print(r.status_code, r.text)
+        if method == "PUT":
+            print(r.status_code, r.text)
         return r
 
-    def register_device(self, code: str) -> True:
+    def register_device(self, code: str):
         """Registers a device to on the Remarkable Cloud.
 
         This uses a unique code the user gets from
@@ -125,7 +131,7 @@ class Client(object):
         else:
             raise AuthError("Can't register device")
 
-    def renew_token(self) -> True:
+    def renew_token(self):
         """Fetches a new user_token.
 
         This is the second step of the authentication of the Remarkable Cloud.
@@ -184,7 +190,7 @@ class Client(object):
 
         return collection
 
-    def get_doc(self, ID: str) -> DocOrFolder:
+    def get_doc(self, ID: str) -> Optional[DocumentOrFolder]:
         """Get a meta item by ID
 
         Fetch a meta item from the Remarkable Cloud by ID.
@@ -215,6 +221,7 @@ class Client(object):
                 return Document(**data_response[0])
         else:
             raise DocumentNotFound(f"Cound not find document {ID}")
+        return None
 
     def download(self, document: Document) -> ZipDocument:
         """Download a ZipDocument
@@ -232,13 +239,18 @@ class Client(object):
         """
 
         if not document.BlobURLGet:
-            document = self.get_doc(document.ID)
-
+            doc = self.get_doc(document.ID)
+            if isinstance(doc, Document):
+                document = doc
+            else:
+                raise UnsupportedTypeError(
+                    "We expected a document, got {type}"
+                    .format(type=type(doc)))
         log.debug("BLOB", document.BlobURLGet)
         r = self.request("GET", document.BlobURLGet, stream=True)
-        return ZipDocument.from_request_stream(document.ID, r)
+        return from_request_stream(document.ID, r)
 
-    def upload(self, zipDoc: ZipDocument, document: Document) -> True:
+    def upload(self, zipDoc: ZipDocument, document: Document):
         """Upload a document to the cloud.
 
         Add a new document to the Remarkable Cloud.
@@ -253,7 +265,7 @@ class Client(object):
 
         return True
 
-    def update_metadata(self, docorfolder: DocOrFolder) -> True:
+    def update_metadata(self, docorfolder: DocumentOrFolder):
         """Send an update of the current metadata of a meta object
 
         Update the meta item.
@@ -272,7 +284,7 @@ class Client(object):
 
         return self.check_reponse(res)
 
-    def get_current_version(self, docorfolder: DocOrFolder) -> int:
+    def get_current_version(self, docorfolder: DocumentOrFolder) -> int:
         """Get the latest version info from a Document or Folder
 
         This fetches the latest meta information from the Remarkable Cloud
@@ -295,7 +307,7 @@ class Client(object):
             return 0
         return int(d.Version)
 
-    def create_folder(self, folder: Folder) -> True:
+    def create_folder(self, folder: Folder):
         """Create a new folder meta object.
 
         This needs to be done in 3 steps:
@@ -330,7 +342,7 @@ class Client(object):
             self.update_metadata(folder)
         return True
 
-    def check_reponse(self, response: requests.Response) -> True:
+    def check_reponse(self, response: requests.Response):
         """Check the response from an API Call
 
         Does some sanity checking on the Response

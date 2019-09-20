@@ -1,10 +1,10 @@
-from .document import Document
+from .meta import Meta
 from datetime import datetime
 from uuid import uuid4
 from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 from .const import RFC3339Nano
-
+from typing import Tuple, Optional
 
 class ZipFolder(object):
     """A dummy zipfile to create a folder
@@ -27,12 +27,12 @@ class ZipFolder(object):
         self.file.seek(0)
 
 
-class Folder(Document):
+class Folder(Meta):
     """
     A Meta type of object used to represent a folder.
     """
 
-    def __init__(self, name=None, **kwargs):
+    def __init__(self, name: Optional[str] = None, **kwargs) -> None:
         """Create a Folder instance
 
         Args:
@@ -47,7 +47,7 @@ class Folder(Document):
         if not self.ID:
             self.ID = str(uuid4())
 
-    def create_request(self) -> (ZipFolder, dict):
+    def create_request(self) -> Tuple[BytesIO, dict]:
         """Prepares the nessesary parameters to create this folder.
 
         This creates a ZipFolder & the nessesary json body to

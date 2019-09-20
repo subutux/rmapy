@@ -3,13 +3,44 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import shutil
 from uuid import uuid4
 import json
-from typing import NoReturn, TypeVar
+from typing import NoReturn, TypeVar, List
 from requests import Response
+from .meta import Meta
 
 BytesOrString = TypeVar("BytesOrString", BytesIO, str)
 
 
-class Document(object):
+class RmPage(object):
+    """A Remarkable Page
+
+    Contains the metadata, the page itself & thumbnail.
+
+    """
+    def __init__(self, page, metadata=None, order=0, thumbnail=None, ID=None):
+        self.page = page
+        if metadata:
+            self.metadata = metadata
+        else:
+            self.metadata = {"layers": [{"name": "Layer 1"}]}
+
+        self.order = order
+        if thumbnail:
+            self.thumbnail = thumbnail
+        if ID:
+            self.ID = ID
+        else:
+            self.ID = str(uuid4())
+
+    def __str__(self) -> str:
+        """String representation of this object"""
+        return f"<rmapi.document.RmPage {self.order} for {self.ID}>"
+
+    def __repr__(self) -> str:
+        """String representation of this object"""
+        return self.__str__()
+
+
+class Document(Meta):
     """ Document represents a real object expected in most
     calls by the remarkable API
 
@@ -34,51 +65,9 @@ class Document(object):
 
     """
 
-    ID = ""
-    Version = 0
-    Message = ""
-    Succes = True
-    BlobURLGet = ""
-    BlobURLGetExpires = ""
-    BlobURLPut = ""
-    BlobURLPutExpires = ""
-    ModifiedClient = ""
-    Type = "DocumentType"
-    VissibleName = ""
-    CurrentPage = 1
-    Bookmarked = False
-    Parent = ""
-
     def __init__(self, **kwargs):
-        kkeys = self.to_dict().keys()
-        for k in kkeys:
-            setattr(self, k, kwargs.get(k, getattr(self, k)))
-
-    def to_dict(self) -> dict:
-        """Return a dict representation of this object.
-
-        Used for API Calls.
-
-        Returns
-            a dict of the current object.
-        """
-
-        return {
-            "ID": self.ID,
-            "Version": self.Version,
-            "Message": self.Message,
-            "Succes": self.Succes,
-            "BlobURLGet": self.BlobURLGet,
-            "BlobURLGetExpires": self.BlobURLGetExpires,
-            "BlobURLPut": self.BlobURLPut,
-            "BlobURLPutExpires": self.BlobURLPutExpires,
-            "ModifiedClient": self.ModifiedClient,
-            "Type": self.Type,
-            "VissibleName": self.VissibleName,
-            "CurrentPage": self.CurrentPage,
-            "Bookmarked": self.Bookmarked,
-            "Parent": self.Parent
-        }
+        super(Document, self).__init__(**kwargs)
+        self.Type = "DocumentType"
 
     def __str__(self):
         """String representation of this object"""
@@ -177,7 +166,7 @@ class ZipDocument(object):
     zipfile = BytesIO()
     pdf = None
     epub = None
-    rm = []
+    rm: List[RmPage] = []
     ID = None
 
     def __init__(self, ID=None, doc=None, file=None):
@@ -220,7 +209,7 @@ class ZipDocument(object):
         """string representation of this class"""
         return self.__str__()
 
-    def dump(self, file: str) -> NoReturn:
+    def dump(self, file: str) -> None:
         """Dump the contents of ZipDocument back to a zip file.
 
         This builds a zipfile to upload back to the Remarkable Cloud.
@@ -236,7 +225,7 @@ class ZipDocument(object):
                             json.dumps(self.content))
             if self.pagedata:
                 zf.writestr(f"{self.ID}.pagedata",
-                            self.pagedata.read())
+                            self.pagedata)
 
             if self.pdf:
                 zf.writestr(f"{self.ID}.pdf",
@@ -257,7 +246,7 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
                             page.thumbnail.read())
 
-    def load(self, file: BytesOrString) -> NoReturn:
+    def load(self, file: BytesOrString) -> None:
         """Load a zipfile into this class.
 
         Extracts the zipfile and reads in the contents.
@@ -287,29 +276,29 @@ class ZipDocument(object):
                 pass
             try:
                 with zf.open(f"{self.ID}.pagedata", 'r') as pagedata:
-                    self.pagedata = BytesIO(pagedata.read())
+                    self.pagedata = str(pagedata.read())
             except KeyError:
                 pass
 
             try:
-                with zf.open(f"{self.ID}.pdf", 'r') as pdf:
+                with zf.open(f"{self.ID}.pdf", 'rb') as pdf:
                     self.pdf = BytesIO(pdf.read())
             except KeyError:
                 pass
 
             try:
-                with zf.open(f"{self.ID}.epub", 'r') as epub:
+                with zf.open(f"{self.ID}.epub", 'rb') as epub:
                     self.epub = BytesIO(epub.read())
             except KeyError:
                 pass
 
             # Get the RM pages
 
-            content = [x for x in zf.namelist()
-                       if x.startswith(f"{self.ID}/") and x.endswith('.rm')]
-            for p in content:
-                pagenumber = p.replace(f"{self.ID}/", "").replace(".rm", "")
-                pagenumber = int(pagenumber)
+            pages = [x for x in zf.namelist()
+                     if x.startswith(f"{self.ID}/") and x.endswith('.rm')]
+            for p in pages:
+                pagenumber = int(p.replace(f"{self.ID}/", "")
+                                  .replace(".rm", ""))
                 page = BytesIO()
                 thumbnail = BytesIO()
                 with zf.open(p, 'r') as rm:
@@ -327,36 +316,6 @@ class ZipDocument(object):
                                       self.ID))
 
         self.zipfile.seek(0)
-
-
-class RmPage(object):
-    """A Remarkable Page
-
-    Contains the metadata, the page itself & thumbnail.
-
-    """
-    def __init__(self, page, metadata=None, order=0, thumbnail=None, ID=None):
-        self.page = page
-        if metadata:
-            self.metadata = metadata
-        else:
-            self.metadata = {"layers": [{"name": "Layer 1"}]}
-
-        self.order = order
-        if thumbnail:
-            self.thumbnail = thumbnail
-        if ID:
-            self.ID = ID
-        else:
-            self.ID = str(uuid4())
-
-    def __str__(self) -> str:
-        """String representation of this object"""
-        return f"<rmapi.document.RmPage {self.order} for {self.ID}>"
-
-    def __repr__(self) -> str:
-        """String representation of this object"""
-        return self.__str__()
 
 
 def from_zip(ID: str, file: str) -> ZipDocument:
