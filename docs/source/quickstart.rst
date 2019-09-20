@@ -45,11 +45,10 @@ The remarkable fs structure is flat containing metadata objects of two types:
 * DocumentType
 * CollectionType
 
-We can list the items in the Cloud:
+We can list the items in the Cloud
 
 .. code-block:: python
    :linenos:
-
 
     >>> from rmapi.api import Client
     >>> rmapi = Client()
@@ -78,7 +77,7 @@ A DocumentType is a document. This can be a pdf, epub or notebook.
 These types are represented by the object :class:`rmapi.document.Document`
 
 
-Changing the metadata is easy::
+Changing the metadata is easy
 
 .. code-block:: python
    :linenos:
@@ -118,7 +117,7 @@ A CollectionType is a Folder.
 
 These types are represented by the object :class:`rmapi.folder.Folder`
 
-Working with folders is easy!::
+Working with folders is easy!
 
 .. code-block:: python
    :linenos:
