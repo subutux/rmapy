@@ -250,20 +250,31 @@ class Client(object):
         r = self.request("GET", document.BlobURLGet, stream=True)
         return from_request_stream(document.ID, r)
 
-    def upload(self, zipDoc: ZipDocument, document: Document):
+    def upload(self, zipDoc: ZipDocument, to: Folder = Folder(ID="")):
         """Upload a document to the cloud.
 
         Add a new document to the Remarkable Cloud.
 
         Args:
             zipDoc: A ZipDocument instance containing the data of a Document.
-            document: the meta item where the zipDoc is for.
         Raises:
             ApiError: an error occured while uploading the document.
 
         """
 
-        return True
+        BlobURLPut = self._upload_request(zipDoc)
+        zipDoc.dump(zipDoc.zipfile)
+        response = self.request("PUT", BlobURLPut, data=zipDoc.zipfile.read())
+        # Reset seek
+        zipDoc.zipfile.seek(0)
+        if response.ok:
+            doc = Document(**zipDoc.metadata)
+            doc.ID = zipDoc.ID
+            doc.Parent = to.ID
+            return self.update_metadata(doc)
+        else:
+            raise ApiError("an error occured while uploading the document.",
+                           response=response)
 
     def update_metadata(self, docorfolder: DocumentOrFolder):
         """Send an update of the current metadata of a meta object
@@ -306,6 +317,24 @@ class Client(object):
         if not d:
             return 0
         return int(d.Version)
+
+    def _upload_request(self, zdoc: ZipDocument) -> dict:
+        zipFile, req = zdoc.create_request()
+        res = self.request("PUT", "/document-storage/json/2/upload/request",
+                           body=[req])
+        if not res.ok:
+            raise ApiError(
+                     f"upload request failed with status {res.status_code}",
+                     response=res)
+        response = res.json()
+        if len(response) > 0:
+            dest = response[0].get("BlobURLPut", None)
+            if dest:
+                return dest
+            else:
+                raise ApiError(
+                    "Cannot create a folder. because BlobURLPut is not set",
+                    response=res)
 
     def create_folder(self, folder: Folder):
         """Create a new folder meta object.
