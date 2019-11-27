@@ -17,7 +17,7 @@ class Collection(object):
 
     items: List[DocumentOrFolder] = []
 
-    def __init__(self, *items):
+    def __init__(self, *items: List[DocumentOrFolder]):
         for i in items:
             self.items.append(i)
 
