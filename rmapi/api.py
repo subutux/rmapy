@@ -250,6 +250,23 @@ class Client(object):
         r = self.request("GET", document.BlobURLGet, stream=True)
         return from_request_stream(document.ID, r)
 
+    def delete(self, doc: DocumentOrFolder):
+        """Delete a document from the cloud.
+
+        Args:
+            doc: A Document or folder to delete.
+        Raises:
+            ApiError: an error occured while uploading the document.
+        """
+
+        response = self.request("PUT", "/document-storage/json/2/delete",
+                                body=[{
+                                    "ID": doc.ID,
+                                    "Version": doc.Version
+                                }])
+
+        return self.check_reponse(response)
+
     def upload(self, zipDoc: ZipDocument, to: Folder = Folder(ID="")):
         """Upload a document to the cloud.
 
