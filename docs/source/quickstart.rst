@@ -112,7 +112,6 @@ Changing the metadata is easy
 CollectionType
 ``````````````
 
-
 A CollectionType is a Folder.
 
 These types are represented by the object :class:`rmapi.folder.Folder`
@@ -161,4 +160,65 @@ Working with folders is easy!
     >>> doc = rmapi.get_doc("a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3")
     >>> doc.Parent == new_folder.ID
     True
+
+
+Uploading & downloading
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+reMarkable has a "special" file format for the raw documents.
+This is basically a zip file with files describing the document.
+
+Here is the content of an archive retried on the tablet as example:
+
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.content
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40-metadata.json
+    * 384326f5-133e-49c8-82ff-30aa19f3cfa40.pdf
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.pagedata
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.thumbnails/0.jpg
+
+As the .zip file from remarkable is simply a normal .zip file
+containing specific file formats.
+
+You can find some help about the format at the following URL:
+https://remarkablewiki.com/tech/filesystem
+
+Uploading
+`````````
+
+To upload a pdf or epub file, we'll first need to convert it into
+the remarkable file format:
+
+
+.. code-block:: python
+   :linenos:
+
+
+    >>> from rmapi.document import ZipDocument
+    >>> from rmapi.api import Client
+    >>> rm = Client()
+    >>> rm.renew_token()
+    True
+    >>> rawDocument = ZipDocument(doc="/home/svancampenhout/27-11-2019.pdf")
+    >>> rawDocument
+    <rmapi.document.ZipDocument b926ffc2-3600-460e-abfa-0fcf20b0bf99>
+    >>> rawDocument.metadata["VissibleName"]
+    '27-11-2019'
+
+Now we can upload this to a specific folder:
+
+.. code-block:: python
+   :linenos:
+
+
+    >>> books = [ i for i in rm.get_meta_items() if i.VissibleName == "Boeken" ][0]
+    >>> rm.upload(rawDocument, books)
+    True
+
+And verify its existance:
+
+.. code-block:: python
+   :linenos:
+
+    >>> [ i.VissibleName for i in collection.children(books) if i.Type == "DocumentType" ]
+    ['Origin - Dan Brown', 'Flatland', 'Game Of Thrones', '27-11-2019']
 
