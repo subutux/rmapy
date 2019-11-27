@@ -1,13 +1,15 @@
+import os
 from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 import shutil
 from uuid import uuid4
 import json
-from typing import NoReturn, TypeVar, List
+from typing import NoReturn, TypeVar, List, Tuple
 from requests import Response
 from .meta import Meta
 
 BytesOrString = TypeVar("BytesOrString", BytesIO, str)
+BytesOrNone = TypeVar("BytesOrNone", BytesIO, None)
 
 
 class RmPage(object):
@@ -110,41 +112,49 @@ class ZipDocument(object):
         rm: A list of :class:rmapi.document.RmPage in this zip.
 
     """
+    # {"extraMetadata": {},
+    # "fileType": "pdf",
+    # "pageCount": 0,
+    # "lastOpenedPage": 0,
+    # "lineHeight": -1,
+    # "margins": 180,
+    # "textScale": 1,
+    # "transform": {}}
     content = {
-        "ExtraMetadata": {
-            "LastBrushColor": "Black",
-            "LastBrushThicknessScale": "2",
-            "LastColor": "Black",
-            "LastEraserThicknessScale": "2",
-            "LastEraserTool": "Eraser",
-            "LastPen": "Ballpoint",
-            "LastPenColor": "Black",
-            "LastPenThicknessScale": "2",
-            "LastPencil": "SharpPencil",
-            "LastPencilColor": "Black",
-            "LastPencilThicknessScale": "2",
-            "LastTool": "SharpPencil",
-            "ThicknessScale": "2"
+        "extraMetadata": {
+            # "LastBrushColor": "Black",
+            # "LastBrushThicknessScale": "2",
+            # "LastColor": "Black",
+            # "LastEraserThicknessScale": "2",
+            # "LastEraserTool": "Eraser",
+            # "LastPen": "Ballpoint",
+            # "LastPenColor": "Black",
+            # "LastPenThicknessScale": "2",
+            # "LastPencil": "SharpPencil",
+            # "LastPencilColor": "Black",
+            # "LastPencilThicknessScale": "2",
+            # "LastTool": "SharpPencil",
+            # "ThicknessScale": "2"
         },
-        "FileType": "",
-        "FontName": "",
-        "LastOpenedPage": 0,
-        "LineHeight": -1,
-        "Margins": 100,
-        "Orientation": "portrait",
-        "PageCount": 0,
-        "Pages": [],
-        "TextScale": 1,
-        "Transform": {
-            "M11": 1,
-            "M12": 0,
-            "M13": 0,
-            "M21": 0,
-            "M22": 1,
-            "M23": 0,
-            "M31": 0,
-            "M32": 0,
-            "M33": 1,
+        # "FileType": "",
+        # "FontName": "",
+        "lastOpenedPage": 0,
+        "lineHeight": -1,
+        "margins": 180,
+        # "Orientation": "portrait",
+        "pageCount": 0,
+        # "Pages": [],
+        "textScale": 1,
+        "transform": {
+            # "M11": 1,
+            # "M12": 0,
+            # "M13": 0,
+            # "M21": 0,
+            # "M22": 1,
+            # "M23": 0,
+            # "M31": 0,
+            # "M32": 0,
+            # "M33": 1,
         }
     }
 
@@ -158,10 +168,10 @@ class ZipDocument(object):
         "synced": True,
         "type": "DocumentType",
         "version": 1,
-        "visibleName": "New Document"
+        "VissibleName": "New Document"
     }
 
-    pagedata = ""
+    pagedata = "b''"
 
     zipfile = BytesIO()
     pdf = None
@@ -183,20 +193,23 @@ class ZipDocument(object):
         if doc:
             ext = doc[-4:]
             if ext.endswith("pdf"):
-                self.content["FileType"] = "pdf"
+                self.content["fileType"] = "pdf"
                 self.pdf = BytesIO()
                 with open(doc, 'rb') as fb:
                     self.pdf.write(fb.read())
+                self.pdf.seek(0)
             if ext.endswith("epub"):
-                self.content["FileType"] = "epub"
+                self.content["fileType"] = "epub"
                 self.epub = BytesIO()
                 with open(doc, 'rb') as fb:
                     self.epub.write(fb.read())
+                self.epub.seek(0)
             elif ext.endswith("rm"):
-                self.content["FileType"] = "notebook"
-                self.pdf = BytesIO()
+                self.content["fileType"] = "notebook"
                 with open(doc, 'rb') as fb:
                     self.rm.append(RmPage(page=BytesIO(doc.read())))
+            name = os.path.splitext(os.path.basename(doc))[0]
+            self.metadata["VissibleName"] = name
 
         if file:
             self.load(file)
@@ -209,7 +222,14 @@ class ZipDocument(object):
         """string representation of this class"""
         return self.__str__()
 
-    def dump(self, file: str) -> None:
+    def create_request(self) -> Tuple[BytesIO, dict]:
+        return self.zipfile, {
+            "ID": self.ID,
+            "Type": "DocumentType",
+            "Version": self.metadata["version"]
+        }
+
+    def dump(self, file: BytesOrString) -> None:
         """Dump the contents of ZipDocument back to a zip file.
 
         This builds a zipfile to upload back to the Remarkable Cloud.
@@ -218,14 +238,11 @@ class ZipDocument(object):
             file: Where to save the zipfile
 
         """
-
-        with ZipFile(f"{file}.zip", "w", ZIP_DEFLATED) as zf:
-            if self.content:
-                zf.writestr(f"{self.ID}.content",
-                            json.dumps(self.content))
-            if self.pagedata:
-                zf.writestr(f"{self.ID}.pagedata",
-                            self.pagedata)
+        with ZipFile(file, "w", ZIP_DEFLATED) as zf:
+            zf.writestr(f"{self.ID}.content",
+                        json.dumps(self.content))
+            zf.writestr(f"{self.ID}.pagedata",
+                        self.pagedata)
 
             if self.pdf:
                 zf.writestr(f"{self.ID}.pdf",
@@ -245,6 +262,8 @@ class ZipDocument(object):
                 page.page.seek(0)
                 zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
                             page.thumbnail.read())
+        if isinstance(file, BytesIO):
+            file.seek(0)
 
     def load(self, file: BytesOrString) -> None:
         """Load a zipfile into this class.
@@ -281,13 +300,13 @@ class ZipDocument(object):
                 pass
 
             try:
-                with zf.open(f"{self.ID}.pdf", 'rb') as pdf:
+                with zf.open(f"{self.ID}.pdf", 'r') as pdf:
                     self.pdf = BytesIO(pdf.read())
             except KeyError:
                 pass
 
             try:
-                with zf.open(f"{self.ID}.epub", 'rb') as epub:
+                with zf.open(f"{self.ID}.epub", 'r') as epub:
                     self.epub = BytesIO(epub.read())
             except KeyError:
                 pass
