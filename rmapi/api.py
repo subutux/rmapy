@@ -24,7 +24,6 @@ log = getLogger("rmapipy.rmapi")
 
 DocumentOrFolder = Union[Document, Folder]
 
-
 class Client(object):
     """API Client for Remarkable Cloud
 
@@ -87,20 +86,16 @@ class Client(object):
         for k in headers.keys():
             _headers[k] = headers[k]
         log.debug(url, _headers)
-        if method == "PUT":
-            print(method, url, json.dumps(body))
         r = requests.request(method, url,
                              json=body,
                              data=data,
                              headers=_headers,
                              params=params,
                              stream=stream)
-        if method == "PUT":
-            print(r.status_code, r.text)
         return r
 
     def register_device(self, code: str):
-        """Registers a device to on the Remarkable Cloud.
+        """Registers a device on the Remarkable Cloud.
 
         This uses a unique code the user gets from
         https://my.remarkable.com/connect/remarkable to register a new device
