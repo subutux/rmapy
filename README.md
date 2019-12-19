@@ -1,4 +1,4 @@
-# rMapi
+# rMapy
 This is an (unofficial) Remarkable Cloud API Client written in Python.
 
 
