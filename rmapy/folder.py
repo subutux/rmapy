@@ -72,7 +72,7 @@ class Folder(Meta):
         return data
 
     def __str__(self):
-        return f"<rmapi.folder.Folder {self.ID}>"
+        return f"<rmapy.folder.Folder {self.ID}>"
 
     def __repr__(self):
         return self.__str__()

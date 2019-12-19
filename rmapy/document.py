@@ -35,7 +35,7 @@ class RmPage(object):
 
     def __str__(self) -> str:
         """String representation of this object"""
-        return f"<rmapi.document.RmPage {self.order} for {self.ID}>"
+        return f"<rmapy.document.RmPage {self.order} for {self.ID}>"
 
     def __repr__(self) -> str:
         """String representation of this object"""
@@ -73,7 +73,7 @@ class Document(Meta):
 
     def __str__(self):
         """String representation of this object"""
-        return f"<rmapi.document.Document {self.ID}>"
+        return f"<rmapy.document.Document {self.ID}>"
 
     def __repr__(self):
         """String representation of this object"""
@@ -109,7 +109,7 @@ class ZipDocument(object):
         zipfile: The raw zipfile in memory.
         pdf: the raw pdf file if there is one.
         epub: the raw epub file if there is one.
-        rm: A list of :class:rmapi.document.RmPage in this zip.
+        rm: A list of :class:rmapy.document.RmPage in this zip.
 
     """
     # {"extraMetadata": {},
@@ -216,7 +216,7 @@ class ZipDocument(object):
 
     def __str__(self) -> str:
         """string representation of this class"""
-        return f"<rmapi.document.ZipDocument {self.ID}>"
+        return f"<rmapy.document.ZipDocument {self.ID}>"
 
     def __repr__(self) -> str:
         """string representation of this class"""
@@ -355,7 +355,7 @@ def from_zip(ID: str, file: str) -> ZipDocument:
 def from_request_stream(ID: str, stream:  Response) -> ZipDocument:
     """Return a ZipDocument from a request stream containing a zipfile.
 
-    This is used with the BlobGETUrl from a :class:`rmapi.document.Document`.
+    This is used with the BlobGETUrl from a :class:`rmapy.document.Document`.
 
     Args:
         ID: The object ID this zipfile represents.

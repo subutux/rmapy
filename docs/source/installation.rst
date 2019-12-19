@@ -1,11 +1,11 @@
 Pip
 ===
 
-Like any other package, you can install rmapi using pip:
+Like any other package, you can install rmapy using pip:
 
 
 .. code-block:: bash
 
-    pip install rmapi
+    pip install rmapy
 
 

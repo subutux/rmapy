@@ -29,7 +29,7 @@ setup(
     # There are some restrictions on what makes a valid project name
     # specification here:
     # https://packaging.python.org/specifications/core-metadata/#name
-    name='rmapi',  # Required
+    name='rmapy',  # Required
 
     # Versions should comply with PEP 440:
     # https://www.python.org/dev/peps/pep-0440/
@@ -37,7 +37,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.0',  # Required
+    version='0.2.1',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -70,7 +70,7 @@ setup(
     #
     # This field corresponds to the "Home-Page" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#home-page-optional
-    url='https://github.com/subutux/rmapi',  # Optional
+    url='https://github.com/subutux/rmapy',  # Optional
 
     # This should be your name or the name of the organization which owns the
     # project.
@@ -110,7 +110,7 @@ setup(
     # project page. What does your project relate to?
     #
     # Note that this is a string of words separated by whitespace, not a list.
-    keywords='remarkable rmapi cloud paper tablet',  # Optional
+    keywords='remarkable rmapy cloud paper tablet',  # Optional
 
     # You can just specify package directories manually here if your project is
     # simple. Or you can use find_packages().
@@ -197,9 +197,9 @@ setup(
     # maintainers, and where to support the project financially. The key is
     # what's used to render the link text on PyPI.
     project_urls={  # Optional
-        'Bug Reports': 'https://github.com/subutux/rmapi/issues',
+        'Bug Reports': 'https://github.com/subutux/rmapy/issues',
         'Funding': 'https://donate.pypi.org',
         'Say Thanks!': 'https://www.paypal.me/subutux',
-        'Source': 'https://github.com/subutux/rmapi/',
+        'Source': 'https://github.com/subutux/rmapy/',
     },
 )

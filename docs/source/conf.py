@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'rmapi'
+project = 'rmapy'
 copyright = '2019, Stijn Van Campenhout'
 author = 'Stijn Van Campenhout'
 

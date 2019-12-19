@@ -1,77 +1,77 @@
-rmapi package
+rmapy package
 =============
 
 Submodules
 ----------
 
-rmapi.api module
+rmapy.api module
 ----------------
 
-.. automodule:: rmapi.api
+.. automodule:: rmapy.api
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.collections module
+rmapy.collections module
 ------------------------
 
-.. automodule:: rmapi.collections
+.. automodule:: rmapy.collections
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.config module
+rmapy.config module
 -------------------
 
-.. automodule:: rmapi.config
+.. automodule:: rmapy.config
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.const module
+rmapy.const module
 ------------------
 
-.. automodule:: rmapi.const
+.. automodule:: rmapy.const
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.document module
+rmapy.document module
 ---------------------
 
-.. automodule:: rmapi.document
+.. automodule:: rmapy.document
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.exceptions module
+rmapy.exceptions module
 -----------------------
 
-.. automodule:: rmapi.exceptions
+.. automodule:: rmapy.exceptions
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.folder module
+rmapy.folder module
 -------------------
 
-.. automodule:: rmapi.folder
+.. automodule:: rmapy.folder
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.meta module
+rmapy.meta module
 -----------------
 
-.. automodule:: rmapi.meta
+.. automodule:: rmapy.meta
    :members:
    :undoc-members:
    :show-inheritance:
 
-rmapi.types module
+rmapy.types module
 ------------------
 
-.. automodule:: rmapi.types
+.. automodule:: rmapy.types
    :members:
    :undoc-members:
    :show-inheritance:
@@ -80,7 +80,7 @@ rmapi.types module
 Module contents
 ---------------
 
-.. automodule:: rmapi
+.. automodule:: rmapy
    :members:
    :undoc-members:
    :show-inheritance:

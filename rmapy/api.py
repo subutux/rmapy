@@ -1,7 +1,6 @@
 import requests
 from logging import getLogger
 from datetime import datetime
-import json
 from typing import Union, Optional
 from uuid import uuid4
 from .collections import Collection
@@ -20,9 +19,9 @@ from .const import (RFC3339Nano,
                     USER_TOKEN_URL,
                     DEVICE,)
 
-log = getLogger("rmapipy.rmapi")
-
+log = getLogger("rmapy")
 DocumentOrFolder = Union[Document, Folder]
+
 
 class Client(object):
     """API Client for Remarkable Cloud

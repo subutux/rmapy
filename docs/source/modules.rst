@@ -1,7 +1,7 @@
-rmapi
+rmapy
 =====
 
 .. toctree::
    :maxdepth: 4
 
-   rmapi
+   rmapy

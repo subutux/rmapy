@@ -6,7 +6,7 @@ from typing import Dict
 
 
 def load() -> dict:
-    """Load the .rmapi config file"""
+    """Load the .rmapy config file"""
 
     config_file_path = Path.joinpath(Path.home(), ".rmapi")
     config: Dict[str, str] = {}
@@ -18,7 +18,7 @@ def load() -> dict:
 
 
 def dump(config: dict) -> None:
-    """Dump config to the .rmapi config file
+    """Dump config to the .rmapy config file
 
     Args:
         config: A dict containing data to dump to the .rmapi
