@@ -6,20 +6,21 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from .const import RFC3339Nano
 from typing import Tuple, Optional
 
+
 class ZipFolder(object):
     """A dummy zipfile to create a folder
 
     This is needed to create a folder on the Remarkable Cloud
     """
 
-    def __init__(self, ID: str):
+    def __init__(self, _id: str):
         """Creates a zipfile in memory
 
         Args:
-            ID: the ID to create a zipFolder for
+            _id: the ID to create a zipFolder for
         """
         super(ZipFolder, self).__init__()
-        self.ID = ID
+        self.ID = _id
         self.file = BytesIO()
         self.Version = 1
         with ZipFile(self.file, 'w', ZIP_DEFLATED) as zf:
@@ -37,7 +38,7 @@ class Folder(Meta):
 
         Args:
             name: An optional name for this folder. In the end, a name is
-                really needed, but can be ommitted to set a later time.
+                really needed, but can be omitted to set a later time.
         """
 
         super(Folder, self).__init__(**kwargs)
@@ -48,9 +49,9 @@ class Folder(Meta):
             self.ID = str(uuid4())
 
     def create_request(self) -> Tuple[BytesIO, dict]:
-        """Prepares the nessesary parameters to create this folder.
+        """Prepares the necessary parameters to create this folder.
 
-        This creates a ZipFolder & the nessesary json body to
+        This creates a ZipFolder & the necessary json body to
         create an upload request.
         """
 
@@ -61,9 +62,9 @@ class Folder(Meta):
         }
 
     def update_request(self) -> dict:
-        """Perpares the nessesary parameters to update a folder.
+        """Prepares the necessary parameters to update a folder.
 
-        This sets some parameters in the datastructure to submit to the API.
+        This sets some parameters in the data structure to submit to the API.
         """
 
         data = self.to_dict()
@@ -76,6 +77,3 @@ class Folder(Meta):
 
     def __repr__(self):
         return self.__str__()
-
-
-

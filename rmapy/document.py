@@ -4,12 +4,11 @@ from zipfile import ZipFile, ZIP_DEFLATED
 import shutil
 from uuid import uuid4
 import json
-from typing import NoReturn, TypeVar, List, Tuple
+from typing import TypeVar, List, Tuple
 from requests import Response
 from .meta import Meta
 
 BytesOrString = TypeVar("BytesOrString", BytesIO, str)
-BytesOrNone = TypeVar("BytesOrNone", BytesIO, None)
 
 
 class RmPage(object):
@@ -18,7 +17,7 @@ class RmPage(object):
     Contains the metadata, the page itself & thumbnail.
 
     """
-    def __init__(self, page, metadata=None, order=0, thumbnail=None, ID=None):
+    def __init__(self, page, metadata=None, order=0, thumbnail=None, _id=None):
         self.page = page
         if metadata:
             self.metadata = metadata
@@ -28,8 +27,8 @@ class RmPage(object):
         self.order = order
         if thumbnail:
             self.thumbnail = thumbnail
-        if ID:
-            self.ID = ID
+        if _id:
+            self.ID = _id
         else:
             self.ID = str(uuid4())
 
@@ -51,7 +50,7 @@ class Document(Meta):
     Attributes:
         ID: Id of the meta object.
         Version: The version of this object.
-        Success: If the last API Call was a succes.
+        Success: If the last API Call was a success.
         BlobURLGet: The url to get the data blob from. Can be empty.
         BlobURLGetExpires: The expiration date of the Get url.
         BlobURLPut: The url to upload the data blob to. Can be empty.
@@ -179,17 +178,17 @@ class ZipDocument(object):
     rm: List[RmPage] = []
     ID = None
 
-    def __init__(self, ID=None, doc=None, file=None):
+    def __init__(self, _id=None, doc=None, file=None):
         """Create a new instance of a ZipDocument
 
         Args:
-            ID: Can be left empty to generate one
+            _id: Can be left empty to generate one
             doc: a raw pdf, epub or rm (.lines) file.
             file: a zipfile to convert from
         """
-        if not ID:
-            ID = str(uuid4())
-        self.ID = ID
+        if not _id:
+            _id = str(uuid4())
+        self.ID = _id
         if doc:
             ext = doc[-4:]
             if ext.endswith("pdf"):
@@ -207,7 +206,7 @@ class ZipDocument(object):
             elif ext.endswith("rm"):
                 self.content["fileType"] = "notebook"
                 with open(doc, 'rb') as fb:
-                    self.rm.append(RmPage(page=BytesIO(doc.read())))
+                    self.rm.append(RmPage(page=BytesIO(fb.read())))
             name = os.path.splitext(os.path.basename(doc))[0]
             self.metadata["VissibleName"] = name
 
@@ -316,10 +315,8 @@ class ZipDocument(object):
             pages = [x for x in zf.namelist()
                      if x.startswith(f"{self.ID}/") and x.endswith('.rm')]
             for p in pages:
-                pagenumber = int(p.replace(f"{self.ID}/", "")
+                page_number = int(p.replace(f"{self.ID}/", "")
                                   .replace(".rm", ""))
-                page = BytesIO()
-                thumbnail = BytesIO()
                 with zf.open(p, 'r') as rm:
                     page = BytesIO(rm.read())
                     page.seek(0)
@@ -331,34 +328,34 @@ class ZipDocument(object):
                     thumbnail = BytesIO(tn.read())
                     thumbnail.seek(0)
 
-                self.rm.append(RmPage(page, metadata, pagenumber, thumbnail,
+                self.rm.append(RmPage(page, metadata, page_number, thumbnail,
                                       self.ID))
 
         self.zipfile.seek(0)
 
 
-def from_zip(ID: str, file: str) -> ZipDocument:
+def from_zip(_id: str, file: str) -> ZipDocument:
     """Return A ZipDocument from a zipfile.
 
     Create a ZipDocument instance from a zipfile.
 
     Args:
-        ID: The object ID this zipfile represents.
+        _id: The object ID this zipfile represents.
         file: the filename of the zipfile.
     Returns:
         An instance of the supplied zipfile.
     """
 
-    return ZipDocument(ID, file=file)
+    return ZipDocument(_id, file=file)
 
 
-def from_request_stream(ID: str, stream:  Response) -> ZipDocument:
+def from_request_stream(_id: str, stream:  Response) -> ZipDocument:
     """Return a ZipDocument from a request stream containing a zipfile.
 
     This is used with the BlobGETUrl from a :class:`rmapy.document.Document`.
 
     Args:
-        ID: The object ID this zipfile represents.
+        _id: The object ID this zipfile represents.
         stream: a stream containing the zipfile.
     Returns:
         the object of the downloaded zipfile.
@@ -367,6 +364,6 @@ def from_request_stream(ID: str, stream:  Response) -> ZipDocument:
     tmp = BytesIO()
     for chunk in stream.iter_content(chunk_size=8192):
         tmp.write(chunk)
-    zd = ZipDocument(ID=ID)
+    zd = ZipDocument(_id=_id)
     zd.load(tmp)
     return zd

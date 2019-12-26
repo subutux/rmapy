@@ -1,4 +1,4 @@
-quickstart
+quick start
 ==========
 
 If you previously used the go package `rmapi`_ ,the keys for authorization
@@ -12,7 +12,7 @@ If not, you'll need to register the client as a new device on `my remarkable`_.
 .. _rmapi: https://github.com/juruen/rmapi
 
 
-Registering the API CLient
+Registering the API Client
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Registering the device is easy. Go to `my remarkable`_ to register a new device
@@ -25,16 +25,16 @@ and use the code you see on the webpage
     from rmapy.api import Client
 
     rmapy = Client()
-    # Shoud return False
+    # Should return False
     rmapy.is_authenticated()
     # This registers the client as a new device. The received device token is
     # stored in the users directory in the file ~/.rmapi, the same as with the
     # go rmapi client.
     rmapy.register_device("fkgzzklrs")
-    # It's always a good idea to refresh the user token everytime you start
+    # It's always a good idea to refresh the user token every time you start
     # a new session.
     rmapy.refresh_token()
-    # Shoud return True
+    # Should return True
     rmapy.is_authenticated()
 
 Working with items

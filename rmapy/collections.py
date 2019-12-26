@@ -9,7 +9,7 @@ DocumentOrFolder = Union[Document, Folder]
 class Collection(object):
     """A collection of meta items
 
-    This is basicly the content of the Remarkable Cloud.
+    This is basically the content of the Remarkable Cloud.
 
     Attributes:
         items: A list containing the items.
@@ -21,59 +21,59 @@ class Collection(object):
         for i in items:
             self.items.append(i)
 
-    def add(self, docdict: dict) -> None:
+    def add(self, doc_dict: dict) -> None:
         """Add an item to the collection.
         It wraps it in the correct class based on the Type parameter of the
         dict.
 
         Args:
-            docdict: A dict representing a document or folder.
+            doc_dict: A dict representing a document or folder.
         """
 
-        if docdict.get("Type", None) == "DocumentType":
-            self.add_document(docdict)
-        elif docdict.get("Type", None) == "CollectionType":
-            self.add_folder(docdict)
+        if doc_dict.get("Type", None) == "DocumentType":
+            self.add_document(doc_dict)
+        elif doc_dict.get("Type", None) == "CollectionType":
+            self.add_folder(doc_dict)
         else:
             raise TypeError("Unsupported type: {_type}"
-                            .format(_type=docdict.get("Type", None)))
+                            .format(_type=doc_dict.get("Type", None)))
 
-    def add_document(self, docdict: dict) -> None:
+    def add_document(self, doc_dict: dict) -> None:
         """Add a document to the collection
 
         Args:
-            docdict: A dict respresenting a document.
+            doc_dict: A dict representing a document.
         """
 
-        self.items.append(Document(**docdict))
+        self.items.append(Document(**doc_dict))
 
-    def add_folder(self, dirdict: dict) -> None:
+    def add_folder(self, dir_dict: dict) -> None:
         """Add a document to the collection
 
         Args:
-            dirdict: A dict respresenting a folder.
+            dir_dict: A dict representing a folder.
         """
 
-        self.items.append(Folder(**dirdict))
+        self.items.append(Folder(**dir_dict))
 
-    def parent(self, docorfolder: DocumentOrFolder) -> Folder:
+    def parent(self, doc_or_folder: DocumentOrFolder) -> Folder:
         """Returns the paren of a Document or Folder
 
         Args:
-            docorfolder: A document or folder to get the parent from
+            doc_or_folder: A document or folder to get the parent from
 
         Returns:
             The parent folder.
         """
 
-        results = [i for i in self.items if i.ID == docorfolder.ID]
+        results = [i for i in self.items if i.ID == doc_or_folder.ID]
         if len(results) > 0 and isinstance(results[0], Folder):
             return results[0]
         else:
             raise FolderNotFound("Could not found the parent of the document.")
 
     def children(self, folder: Folder = None) -> List[DocumentOrFolder]:
-        """Get all the childern from a folder
+        """Get all the children from a folder
 
         Args:
             folder: A folder where to get the children from. If None, this will

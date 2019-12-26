@@ -7,7 +7,7 @@ class Meta(object):
     Attributes:
         ID: Id of the meta object.
         Version: The version of this object.
-        Success: If the last API Call was a succes.
+        Success: If the last API Call was a success.
         BlobURLGet: The url to get the data blob from. Can be empty.
         BlobURLGetExpires: The expiration date of the Get url.
         BlobURLPut: The url to upload the data blob to. Can be empty.
@@ -26,7 +26,7 @@ class Meta(object):
     ID = ""
     Version = 0
     Message = ""
-    Succes = True
+    Success = True
     BlobURLGet = ""
     BlobURLGetExpires = ""
     BlobURLPut = ""
@@ -39,8 +39,8 @@ class Meta(object):
     Parent = ""
 
     def __init__(self, **kwargs):
-        kkeys = self.to_dict().keys()
-        for k in kkeys:
+        k_keys = self.to_dict().keys()
+        for k in k_keys:
             setattr(self, k, kwargs.get(k, getattr(self, k)))
 
     def to_dict(self) -> dict:
@@ -56,7 +56,7 @@ class Meta(object):
             "ID": self.ID,
             "Version": self.Version,
             "Message": self.Message,
-            "Succes": self.Succes,
+            "Succes": self.Success,
             "BlobURLGet": self.BlobURLGet,
             "BlobURLGetExpires": self.BlobURLGetExpires,
             "BlobURLPut": self.BlobURLPut,

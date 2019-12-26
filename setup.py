@@ -22,7 +22,7 @@ setup(
     # package, this name will be registered for you. It will determine how
     # users can install this project, e.g.:
     #
-    # $ pip install sampleproject
+    # $ pip install sampleprojectk
     #
     # And where it will live on PyPI: https://pypi.org/project/sampleproject/
     #
@@ -37,7 +37,7 @@ setup(
     # For a discussion on single-sourcing the version across setup.py and the
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.2.1',  # Required
+    version='0.2.2',  # Required
 
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
@@ -88,8 +88,8 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
-        #'Development Status :: 4 - Beta',
+        #'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         #'Development Status :: 5 - Production/Stable'
         #'Development Status :: 6 - Mature'
         # Indicate who your project is intended for
@@ -180,7 +180,7 @@ setup(
     #
     # For example, the following would provide a command called `sample` which
     # executes the function `main` from this package when invoked:
-    # TODO
+    # TODO Create a command line tool
     # entry_points={  # Optional
     #     'console_scripts': [
     #         'sample=sample:main',

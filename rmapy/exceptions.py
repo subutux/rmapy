@@ -27,4 +27,3 @@ class ApiError(Exception):
     def __init__(self, msg, response=None):
         self.response = response
         super(ApiError, self).__init__(msg)
-
