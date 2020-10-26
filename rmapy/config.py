@@ -8,7 +8,7 @@ from typing import Dict
 def load() -> dict:
     """Load the .rmapy config file"""
 
-    config_file_path = Path.joinpath(Path.home(), ".rmapi")
+    config_file_path = Path.joinpath(Path.home(), ".rmapy")
     config: Dict[str, str] = {}
     if Path.exists(config_file_path):
         with open(config_file_path, 'r') as config_file:
@@ -21,11 +21,11 @@ def dump(config: dict) -> None:
     """Dump config to the .rmapy config file
 
     Args:
-        config: A dict containing data to dump to the .rmapi
+        config: A dict containing data to dump to the .rmapy
             config file.
     """
 
-    config_file_path = Path.joinpath(Path.home(), ".rmapi")
+    config_file_path = Path.joinpath(Path.home(), ".rmapy")
 
     with open(config_file_path, 'w') as config_file:
         config_file.write(yml_dump(config))
