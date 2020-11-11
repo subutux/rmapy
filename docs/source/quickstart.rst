@@ -26,7 +26,7 @@ and use the code you see on the webpage
 
     rmapy = Client()
     # Should return False
-    rmapy.is_authenticated()
+    rmapy.is_auth()
     # This registers the client as a new device. The received device token is
     # stored in the users directory in the file ~/.rmapi, the same as with the
     # go rmapi client.
@@ -35,7 +35,7 @@ and use the code you see on the webpage
     # a new session.
     rmapy.refresh_token()
     # Should return True
-    rmapy.is_authenticated()
+    rmapy.is_auth()
 
 Working with items
 ~~~~~~~~~~~~~~~~~~
