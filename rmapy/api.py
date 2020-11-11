@@ -115,7 +115,7 @@ class Client(object):
             "deviceID": uuid,
 
         }
-        response = self.request("POST", DEVICE_TOKEN_URL, body)
+        response = self.request("POST", DEVICE_TOKEN_URL, body=body)
         if response.ok:
             self.token_set["devicetoken"] = response.text
             dump(self.token_set)
