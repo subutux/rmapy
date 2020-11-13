@@ -37,7 +37,6 @@ class Client(object):
 
     def __init__(self):
         config = load()
-        self.meta_items = None
         if "devicetoken" in config:
             self.token_set["devicetoken"] = config["devicetoken"]
         if "usertoken" in config:
@@ -164,7 +163,7 @@ class Client(object):
         else:
             return False
 
-    def get_meta_items(self, use_cache: bool = False) -> Collection:
+    def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
 
         It fetches all meta items from the Remarkable Cloud and stores them
@@ -175,16 +174,13 @@ class Client(object):
                 Cloud
         """
 
-        if use_cache and not (self.meta_items is None):
-            return self.meta_items
-
         response = self.request("GET", "/document-storage/json/2/docs")
-        self.meta_items = Collection()
+        collection = Collection()
         log.debug(response.text)
         for item in response.json():
-            self.meta_items.add(item)
+            collection.add(item)
 
-        return self.meta_items
+        return collection
 
     def get_doc(self, _id: str) -> Optional[DocumentOrFolder]:
         """Get a meta item by ID

@@ -56,7 +56,7 @@ class Meta(object):
             "ID": self.ID,
             "Version": self.Version,
             "Message": self.Message,
-            "Success": self.Success,
+            "Succes": self.Success,
             "BlobURLGet": self.BlobURLGet,
             "BlobURLGetExpires": self.BlobURLGetExpires,
             "BlobURLPut": self.BlobURLPut,
