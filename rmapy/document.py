@@ -5,9 +5,11 @@ import shutil
 from uuid import uuid4
 import json
 from typing import TypeVar, List, Tuple
+from logging import getLogger
 from requests import Response
 from .meta import Meta
 
+log = getLogger(__name__)
 BytesOrString = TypeVar("BytesOrString", BytesIO, str)
 
 
@@ -311,7 +313,6 @@ class ZipDocument(object):
                 pass
 
             # Get the RM pages
-
             pages = [x for x in zf.namelist()
                      if x.startswith(f"{self.ID}/") and x.endswith('.rm')]
             for p in pages:
@@ -322,11 +323,16 @@ class ZipDocument(object):
                     page.seek(0)
                 with zf.open(p.replace(".rm", "-metadata.json"), 'r') as md:
                     metadata = json.load(md)
+
                 thumbnail_name = p.replace(".rm", ".jpg")
                 thumbnail_name = thumbnail_name.replace("/", ".thumbnails/")
-                with zf.open(thumbnail_name, 'r') as tn:
-                    thumbnail = BytesIO(tn.read())
-                    thumbnail.seek(0)
+                try:
+                    with zf.open(thumbnail_name, 'r') as tn:
+                        thumbnail = BytesIO(tn.read())
+                        thumbnail.seek(0)
+                except KeyError:
+                    log.debug(f"missing thumbnail: {thumbnail_name}")
+                    thumbnail = None
 
                 self.rm.append(RmPage(page, metadata, page_number, thumbnail,
                                       self.ID))
