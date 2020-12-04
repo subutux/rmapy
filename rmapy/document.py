@@ -9,7 +9,7 @@ from logging import getLogger
 from requests import Response
 from .meta import Meta
 
-log = getLogger(__name__)
+log = getLogger("rmapy")
 BytesOrString = TypeVar("BytesOrString", BytesIO, str)
 
 
