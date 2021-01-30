@@ -31,9 +31,9 @@ and use the code you see on the webpage
     # stored in the users directory in the file ~/.rmapi, the same as with the
     # go rmapi client.
     rmapy.register_device("fkgzzklrs")
-    # It's always a good idea to refresh the user token every time you start
+    # It's always a good idea to renew the user token every time you start
     # a new session.
-    rmapy.refresh_token()
+    rmapy.renew_token()
     # Should return True
     rmapy.is_auth()
 
