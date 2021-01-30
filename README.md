@@ -14,4 +14,3 @@ This is an (unofficial) Remarkable Cloud API Client written in Python.
 * ❎ cli interface
 * ❎ export pdf with annotations
 
-
