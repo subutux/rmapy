@@ -325,9 +325,14 @@ class ZipDocument(object):
                 with zf.open(p, 'r') as rm:
                     page = BytesIO(rm.read())
                     page.seek(0)
-                with zf.open(p.replace(".rm", "-metadata.json"), 'r') as md:
-                    metadata = json.load(md)
 
+                p_meta = p.replace(".rm", "-metadata.json")
+                try:
+                    with zf.open(p_meta, 'r') as md:
+                        metadata = json.load(md)
+                except KeyError:
+                    log.debug(f"missing metadata: {p_meta}")
+                    metadata = None
                 thumbnail_name = p.replace(".rm", ".jpg")
                 thumbnail_name = thumbnail_name.replace("/", ".thumbnails/")
                 try:
