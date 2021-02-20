@@ -261,8 +261,12 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}/{page.order}-metadata.json",
                             json.dumps(page.metadata))
                 page.page.seek(0)
-                zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
-                            page.thumbnail.read())
+                try:
+                    zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
+                                page.thumbnail.read())
+                except AttributeError:
+                    log.debug(f"missing thumbnail during dump: {self.ID}: {page.order}")
+                    pass
         if isinstance(file, BytesIO):
             file.seek(0)
 
