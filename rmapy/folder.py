@@ -19,7 +19,6 @@ class ZipFolder(object):
         Args:
             _id: the ID to create a zipFolder for
         """
-        super(ZipFolder, self).__init__()
         self.ID = _id
         self.file = BytesIO()
         self.Version = 1
@@ -40,8 +39,7 @@ class Folder(Meta):
             name: An optional name for this folder. In the end, a name is
                 really needed, but can be omitted to set a later time.
         """
-
-        super(Folder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.Type = "CollectionType"
         if name:
             self.VissibleName = name

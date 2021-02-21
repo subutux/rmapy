@@ -7,88 +7,89 @@ DocumentOrFolder = Union[Document, Folder]
 
 
 class Collection(object):
-    """A collection of meta items
+  """A collection of meta items
 
-    This is basically the content of the Remarkable Cloud.
+  This is basically the content of the Remarkable Cloud.
 
-    Attributes:
-        items: A list containing the items.
+  Attributes:
+    items: A list containing the items.
+  """
+
+  items: List[DocumentOrFolder] = []
+
+  def __init__(self, *items: List[DocumentOrFolder]):
+    for i in items:
+      self.items.append(i)
+
+  def add(self, doc_dict: dict) -> None:
+    """Add an item to the collection.
+    It wraps it in the correct class based on the Type parameter of the
+    dict.
+
+    Args:
+      doc_dict: A dict representing a document or folder.
     """
 
-    items: List[DocumentOrFolder] = []
+    if doc_dict.get("Type", None) == "DocumentType":
+      self.add_document(doc_dict)
+    elif doc_dict.get("Type", None) == "CollectionType":
+      self.add_folder(doc_dict)
+    else:
+      raise TypeError("Unsupported type: {_type}"
+              .format(_type=doc_dict.get("Type", None)))
 
-    def __init__(self, *items: List[DocumentOrFolder]):
-        for i in items:
-            self.items.append(i)
+  def add_document(self, doc_dict: dict) -> None:
+    """Add a document to the collection
 
-    def add(self, doc_dict: dict) -> None:
-        """Add an item to the collection.
-        It wraps it in the correct class based on the Type parameter of the
-        dict.
+    Args:
+      doc_dict: A dict representing a document.
+    """
 
-        Args:
-            doc_dict: A dict representing a document or folder.
-        """
+    self.items.append(Document(**doc_dict))
 
-        if doc_dict.get("Type", None) == "DocumentType":
-            self.add_document(doc_dict)
-        elif doc_dict.get("Type", None) == "CollectionType":
-            self.add_folder(doc_dict)
-        else:
-            raise TypeError("Unsupported type: {_type}"
-                            .format(_type=doc_dict.get("Type", None)))
+  def add_folder(self, dir_dict: dict) -> None:
+    """Add a document to the collection
 
-    def add_document(self, doc_dict: dict) -> None:
-        """Add a document to the collection
+    Args:
+      dir_dict: A dict representing a folder.
+    """
 
-        Args:
-            doc_dict: A dict representing a document.
-        """
+    self.items.append(Folder(**dir_dict))
 
-        self.items.append(Document(**doc_dict))
+  def parent(self, doc_or_folder: DocumentOrFolder) -> Folder:
+    """Returns the paren of a Document or Folder
 
-    def add_folder(self, dir_dict: dict) -> None:
-        """Add a document to the collection
+    Args:
+      doc_or_folder: A document or folder to get the parent from
 
-        Args:
-            dir_dict: A dict representing a folder.
-        """
+    Returns:
+      The parent folder.
+    """
 
-        self.items.append(Folder(**dir_dict))
+    results = [i for i in self.items if i.ID == doc_or_folder.ID]
+    if len(results) > 0 and isinstance(results[0], Folder):
+      return results[0]
+    else:
+      raise FolderNotFound("Could not found the parent of the document.")
 
-    def parent(self, doc_or_folder: DocumentOrFolder) -> Folder:
-        """Returns the paren of a Document or Folder
+  def children(self, folder: Folder = None) -> List[DocumentOrFolder]:
+    """Get all the children from a folder
 
-        Args:
-            doc_or_folder: A document or folder to get the parent from
+    Args:
+      folder: A folder where to get the children from. If None, this will
+        get the children in the root.
+    Returns:
+      a list of documents an folders.
+    """
 
-        Returns:
-            The parent folder.
-        """
+    if folder:
+      return [i for i in self.items if i.Parent == folder.ID]
+    else:
+      return [i for i in self.items if i.Parent == ""]
 
-        results = [i for i in self.items if i.ID == doc_or_folder.ID]
-        if len(results) > 0 and isinstance(results[0], Folder):
-            return results[0]
-        else:
-            raise FolderNotFound("Could not found the parent of the document.")
+  def __len__(self) -> int:
+    return len(self.items)
 
-    def children(self, folder: Folder = None) -> List[DocumentOrFolder]:
-        """Get all the children from a folder
+  def __getitem__(self, position: int) -> DocumentOrFolder:
+    return self.items[position]
 
-        Args:
-            folder: A folder where to get the children from. If None, this will
-                get the children in the root.
-        Returns:
-            a list of documents an folders.
-        """
-
-        if folder:
-            return [i for i in self.items if i.Parent == folder.ID]
-        else:
-            return [i for i in self.items if i.Parent == ""]
-
-    def __len__(self) -> int:
-        return len(self.items)
-
-    def __getitem__(self, position: int) -> DocumentOrFolder:
-        return self.items[position]
