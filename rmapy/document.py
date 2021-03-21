@@ -261,8 +261,12 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}/{page.order}-metadata.json",
                             json.dumps(page.metadata))
                 page.page.seek(0)
-                zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
-                            page.thumbnail.read())
+                try:
+                    zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
+                                page.thumbnail.read())
+                except AttributeError:
+                    log.debug(f"missing thumbnail during dump: {self.ID}: {page.order}")
+                    pass
         if isinstance(file, BytesIO):
             file.seek(0)
 
@@ -321,9 +325,14 @@ class ZipDocument(object):
                 with zf.open(p, 'r') as rm:
                     page = BytesIO(rm.read())
                     page.seek(0)
-                with zf.open(p.replace(".rm", "-metadata.json"), 'r') as md:
-                    metadata = json.load(md)
 
+                p_meta = p.replace(".rm", "-metadata.json")
+                try:
+                    with zf.open(p_meta, 'r') as md:
+                        metadata = json.load(md)
+                except KeyError:
+                    log.debug(f"missing metadata: {p_meta}")
+                    metadata = None
                 thumbnail_name = p.replace(".rm", ".jpg")
                 thumbnail_name = thumbnail_name.replace("/", ".thumbnails/")
                 try:
