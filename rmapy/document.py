@@ -19,7 +19,7 @@ class RmPage(object):
     Contains the metadata, the page itself & thumbnail.
 
     """
-    def __init__(self, page, metadata=None, order=0, thumbnail=None, _id=None):
+    def __init__(self, page, metadata=None, order=0, thumbnail=None, doc_id=None, page_id=None):
         self.page = page
         if metadata:
             self.metadata = metadata
@@ -29,14 +29,18 @@ class RmPage(object):
         self.order = order
         if thumbnail:
             self.thumbnail = thumbnail
-        if _id:
-            self.ID = _id
+        if doc_id:
+            self.DOC_ID = doc_id
+        else:
+            self.DOC_ID = str(uuid4())
+        if page_id:
+            self.ID = page_id
         else:
             self.ID = str(uuid4())
 
     def __str__(self) -> str:
         """String representation of this object"""
-        return f"<rmapy.document.RmPage {self.order} for {self.ID}>"
+        return f"<rmapy.document.RmPage {self.order}, {self.ID} for {self.DOC_ID}>"
 
     def __repr__(self) -> str:
         """String representation of this object"""
@@ -80,8 +84,23 @@ class Document(Meta):
         """String representation of this object"""
         return self.__str__()
 
+    def to_metadata(self):
+        """Returns the metadata as the expected format in the metadata file"""
+        return {
+            "deleted" : False,
+            "lastModified" : 0,
+            "lastOpenedPage" : self.CurrentPage,
+            "metadatamodified" : False,
+            "modified" : self.ModifiedClient,
+            "parent" : self.Parent,
+            "pinned" : False,
+            "synced" : True,
+            "type" : self.Type,
+            "version" : self.Version,
+            "visibleName" : self.VissibleName,
+        }
 
-class ZipDocument(object):
+class ZipDocument:
     """
     Here is the content of an archive retried on the tablet as example:
 
@@ -169,7 +188,7 @@ class ZipDocument(object):
         "synced": True,
         "type": "DocumentType",
         "version": 1,
-        "VissibleName": "New Document"
+        "visibleName": "New Document"
     }
 
     pagedata = "b''"
@@ -242,10 +261,14 @@ class ZipDocument(object):
         """
         with ZipFile(file, "w", ZIP_DEFLATED) as zf:
             zf.writestr(f"{self.ID}.content",
-                        json.dumps(self.content))
+                        json.dumps(self.content, indent = 2, separators=(',', ': ')))
             zf.writestr(f"{self.ID}.pagedata",
                         self.pagedata)
-
+            try:
+                zf.writestr(f"{self.ID}.metadata",
+                            json.dumps(self.metadata, indent = 2, separators=(',', ': ')))
+            except:
+                pass
             if self.pdf:
                 zf.writestr(f"{self.ID}.pdf",
                             self.pdf.read())
@@ -255,15 +278,18 @@ class ZipDocument(object):
                             self.epub.read())
 
             for page in self.rm:
-
-                zf.writestr(f"{self.ID}/{page.order}.rm",
+                zf.writestr(f"{self.ID}/{page.ID}.rm",
                             page.page.read())
 
-                zf.writestr(f"{self.ID}/{page.order}-metadata.json",
-                            json.dumps(page.metadata))
+                zf.writestr(f"{self.ID}/{page.ID}-metadata.json",
+                            json.dumps(page.metadata, indent = 2, separators=(',', ': ')))
                 page.page.seek(0)
-                zf.writestr(f"{self.ID}.thumbnails/{page.order}.jpg",
-                            page.thumbnail.read())
+                try:
+                    zf.writestr(f"{self.ID}.thumbnails/{page.ID}.jpg",
+                                page.thumbnail.read())
+                except AttributeError:
+                    log.debug(f"missing thumbnail during dump: {self.ID}: {page.ID}")
+                    pass
         if isinstance(file, BytesIO):
             file.seek(0)
 
@@ -319,6 +345,7 @@ class ZipDocument(object):
             for p in pages:
                 page_number = int(p.replace(f"{self.ID}/", "")
                                   .replace(".rm", ""))
+                page_id = self.content['pages'][page_number]
                 with zf.open(p, 'r') as rm:
                     page = BytesIO(rm.read())
                     page.seek(0)
@@ -336,7 +363,7 @@ class ZipDocument(object):
                     thumbnail = None
 
                 self.rm.append(RmPage(page, metadata, page_number, thumbnail,
-                                      self.ID))
+                                      self.ID, page_id))
 
         self.zipfile.seek(0)
 
