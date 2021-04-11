@@ -191,6 +191,7 @@ class ZipDocument(object):
         if not _id:
             _id = str(uuid4())
         self.ID = _id
+        self.rm = []
         if doc:
             ext = doc[-4:]
             if ext.endswith("pdf"):
