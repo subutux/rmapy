@@ -126,7 +126,6 @@ class ZipDocument(object):
             doc: a raw pdf, epub or rm (.lines) file.
             file: a zipfile to convert from
         """
-<<<<<<< HEAD
         # {"extraMetadata": {},
         # "fileType": "pdf",
         # "pageCount": 0,

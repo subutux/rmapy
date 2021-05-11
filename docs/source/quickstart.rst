@@ -175,6 +175,7 @@ Here is the content of an archive retried on the tablet as example:
     * 384326f5-133e-49c8-82ff-30aa19f3cfa40.pdf
     * 384327f5-133e-49c8-82ff-30aa19f3cfa40.pagedata
     * 384327f5-133e-49c8-82ff-30aa19f3cfa40.thumbnails/0.jpg
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.highlights/9b75d8df-1d06-4c59-8f3e-4cf69aa96cd9.json
 
 As the .zip file from remarkable is simply a normal .zip file
 containing specific file formats.
