@@ -42,6 +42,11 @@ class RmPage(object):
         """String representation of this object"""
         return self.__str__()
 
+class Highlight(object):
+
+    def __init__(self, page_id: str, highlight_data: BytesIO):
+        self.page_id = page_id
+        self.highlight_data = highlight_data
 
 class Document(Meta):
     """ Document represents a real object expected in most
@@ -121,6 +126,7 @@ class ZipDocument(object):
             doc: a raw pdf, epub or rm (.lines) file.
             file: a zipfile to convert from
         """
+<<<<<<< HEAD
         # {"extraMetadata": {},
         # "fileType": "pdf",
         # "pageCount": 0,
@@ -188,6 +194,8 @@ class ZipDocument(object):
         self.rm: List[RmPage] = []
         self.ID = None
 
+        self.highlights: List[Highlight] = []
+
         if not _id:
             _id = str(uuid4())
         self.ID = _id
@@ -253,6 +261,10 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}.epub",
                             self.epub.read())
 
+            for highlight in self.highlights:
+                zf.writestr(f"{self.ID}.highlights/{highlight.page_id}.json",
+                            highlight.highlight_data.read())
+
             for page in self.rm:
 
                 zf.writestr(f"{self.ID}/{page.order}.rm",
@@ -315,6 +327,15 @@ class ZipDocument(object):
                     self.epub = BytesIO(epub.read())
             except KeyError:
                 pass
+
+            # Get Highlights
+            highlights = [x for x in zf.namelist()
+                     if x.startswith(f"{self.ID}.highlights/") and x.endswith('.json')]
+            for highlight in highlights:
+                with zf.open(highlight, 'r') as highlight_fp:
+                    page_id = highlight.replace(f"{self.ID}.highlights/", "").replace(".json", "")
+                    highlight_data = BytesIO(highlight_fp.read())
+                    self.highlights.append(Highlight(page_id, highlight_data))
 
             # Get the RM pages
             pages = [x for x in zf.namelist()
