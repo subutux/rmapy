@@ -113,73 +113,6 @@ class ZipDocument(object):
         rm: A list of :class:rmapy.document.RmPage in this zip.
 
     """
-    # {"extraMetadata": {},
-    # "fileType": "pdf",
-    # "pageCount": 0,
-    # "lastOpenedPage": 0,
-    # "lineHeight": -1,
-    # "margins": 180,
-    # "textScale": 1,
-    # "transform": {}}
-    content = {
-        "extraMetadata": {
-            # "LastBrushColor": "Black",
-            # "LastBrushThicknessScale": "2",
-            # "LastColor": "Black",
-            # "LastEraserThicknessScale": "2",
-            # "LastEraserTool": "Eraser",
-            # "LastPen": "Ballpoint",
-            # "LastPenColor": "Black",
-            # "LastPenThicknessScale": "2",
-            # "LastPencil": "SharpPencil",
-            # "LastPencilColor": "Black",
-            # "LastPencilThicknessScale": "2",
-            # "LastTool": "SharpPencil",
-            # "ThicknessScale": "2"
-        },
-        # "FileType": "",
-        # "FontName": "",
-        "lastOpenedPage": 0,
-        "lineHeight": -1,
-        "margins": 180,
-        # "Orientation": "portrait",
-        "pageCount": 0,
-        # "Pages": [],
-        "textScale": 1,
-        "transform": {
-            # "M11": 1,
-            # "M12": 0,
-            # "M13": 0,
-            # "M21": 0,
-            # "M22": 1,
-            # "M23": 0,
-            # "M31": 0,
-            # "M32": 0,
-            # "M33": 1,
-        }
-    }
-
-    metadata = {
-        "deleted": False,
-        "lastModified": "1568368808000",
-        "metadatamodified": False,
-        "modified": False,
-        "parent": "",
-        "pinned": False,
-        "synced": True,
-        "type": "DocumentType",
-        "version": 1,
-        "VissibleName": "New Document"
-    }
-
-    pagedata = "b''"
-
-    zipfile = BytesIO()
-    pdf = None
-    epub = None
-    rm: List[RmPage] = []
-    ID = None
-
     def __init__(self, _id=None, doc=None, file=None):
         """Create a new instance of a ZipDocument
 
@@ -188,6 +121,73 @@ class ZipDocument(object):
             doc: a raw pdf, epub or rm (.lines) file.
             file: a zipfile to convert from
         """
+        # {"extraMetadata": {},
+        # "fileType": "pdf",
+        # "pageCount": 0,
+        # "lastOpenedPage": 0,
+        # "lineHeight": -1,
+        # "margins": 180,
+        # "textScale": 1,
+        # "transform": {}}
+        self.content = {
+            "extraMetadata": {
+                # "LastBrushColor": "Black",
+                # "LastBrushThicknessScale": "2",
+                # "LastColor": "Black",
+                # "LastEraserThicknessScale": "2",
+                # "LastEraserTool": "Eraser",
+                # "LastPen": "Ballpoint",
+                # "LastPenColor": "Black",
+                # "LastPenThicknessScale": "2",
+                # "LastPencil": "SharpPencil",
+                # "LastPencilColor": "Black",
+                # "LastPencilThicknessScale": "2",
+                # "LastTool": "SharpPencil",
+                # "ThicknessScale": "2"
+            },
+            # "FileType": "",
+            # "FontName": "",
+            "lastOpenedPage": 0,
+            "lineHeight": -1,
+            "margins": 180,
+            # "Orientation": "portrait",
+            "pageCount": 0,
+            # "Pages": [],
+            "textScale": 1,
+            "transform": {
+                # "M11": 1,
+                # "M12": 0,
+                # "M13": 0,
+                # "M21": 0,
+                # "M22": 1,
+                # "M23": 0,
+                # "M31": 0,
+                # "M32": 0,
+                # "M33": 1,
+            }
+        }
+
+        self.metadata = {
+            "deleted": False,
+            "lastModified": "1568368808000",
+            "metadatamodified": False,
+            "modified": False,
+            "parent": "",
+            "pinned": False,
+            "synced": True,
+            "type": "DocumentType",
+            "version": 1,
+            "VissibleName": "New Document"
+        }
+
+        self.pagedata = "b''"
+
+        self.zipfile = BytesIO()
+        self.pdf = None
+        self.epub = None
+        self.rm: List[RmPage] = []
+        self.ID = None
+
         if not _id:
             _id = str(uuid4())
         self.ID = _id
