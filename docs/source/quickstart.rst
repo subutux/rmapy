@@ -180,6 +180,8 @@ Here is the content of an archive retried on the tablet as example:
 As the .zip file from remarkable is simply a normal .zip file
 containing specific file formats.
 
+Highlights are stored in the `{uuid}.highlights/` folder.
+
 You can find some help about the format at the following URL:
 https://remarkablewiki.com/tech/filesystem
 
