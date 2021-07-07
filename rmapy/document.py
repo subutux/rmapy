@@ -43,32 +43,28 @@ class RmPage(object):
         return self.__str__()
 
 class Highlight(object):
-    """ Highlight represents a highlight created using the highligher pen
+    """ Highlight represents all highlights on a page created using the highligher pen
         in EPUB documents.
 
         Functionality introduced in Remarkable 2.7 software.
 
-        Contains the page_id of the highlight and the highlight
-        metadata from the Remarkable Cloud.
+        Contains the page_id where the highlights are located and the highlights
+        metadata for the page from the Remarkable Cloud.
+
+        Corresponds to single .json file in the .highlights/ folder.
 
         Attributes:
             page_id: The ID of the page where the highlight is located.
             highlight_data: A dictionary containing all highlight data.
-            text: The highlight text as determined by the remarkable firmware.
-            start: The start position in characters of the highlight on the page.
-            length: The length of the text.
     """
 
     def __init__(self, page_id: str, highlight_data: str):
         self.page_id = page_id
-        self.highlight_data = json.load(highlight_data)
-        self.text = self.highlight_data['text']
-        self.start = self.highlight_data['start']
-        self.length = self.highlight_data['length']
+        self.highlight_data = json.loads(highlight_data)
 
     def __str__(self) -> str:
         """String representation of this object"""
-        return f"<rmapy.document.Highlight {self.text} page {self.page_id}>"
+        return f"<rmapy.document.Highlight {self.page_id}>"
 
     def __repr__(self) -> str:
         """String representation of this object"""
