@@ -42,6 +42,33 @@ class RmPage(object):
         """String representation of this object"""
         return self.__str__()
 
+class Highlight(object):
+    """ Highlight represents all highlights on a page created using the highligher pen
+        in EPUB documents.
+
+        Functionality introduced in Remarkable 2.7 software.
+
+        Contains the page_id where the highlights are located and the highlights
+        metadata for the page from the Remarkable Cloud.
+
+        Corresponds to single .json file in the .highlights/ folder.
+
+        Attributes:
+            page_id: The ID of the page where the highlight is located.
+            highlight_data: A dictionary containing all highlight data.
+    """
+
+    def __init__(self, page_id: str, highlight_data: str):
+        self.page_id = page_id
+        self.highlight_data = json.loads(highlight_data)
+
+    def __str__(self) -> str:
+        """String representation of this object"""
+        return f"<rmapy.document.Highlight {self.page_id}>"
+
+    def __repr__(self) -> str:
+        """String representation of this object"""
+        return self.__str__()
 
 class Document(Meta):
     """ Document represents a real object expected in most
@@ -90,6 +117,7 @@ class ZipDocument(object):
     * 384326f5-133e-49c8-82ff-30aa19f3cfa40.rm
     * 384327f5-133e-49c8-82ff-30aa19f3cfa40.pagedata
     * 384327f5-133e-49c8-82ff-30aa19f3cfa40.thumbnails/0.jpg
+    * 384327f5-133e-49c8-82ff-30aa19f3cfa40.highlights/9b75d8df-1d06-4c59-8f3e-4cf69aa96cd9.json
 
     As the .zip file from remarkable is simply a normal .zip file
     containing specific file formats, this package is a helper to
@@ -106,6 +134,7 @@ class ZipDocument(object):
     Attributes:
         content: Sane defaults for the .content file in the zip.
         metadata: parameters describing this blob.
+        highlights: list of contents of the .highlights folder
         pagedata: the content of the .pagedata file.
         zipfile: The raw zipfile in memory.
         pdf: the raw pdf file if there is one.
@@ -188,6 +217,8 @@ class ZipDocument(object):
         self.rm: List[RmPage] = []
         self.ID = None
 
+        self.highlights: List[Highlight] = []
+
         if not _id:
             _id = str(uuid4())
         self.ID = _id
@@ -253,6 +284,10 @@ class ZipDocument(object):
                 zf.writestr(f"{self.ID}.epub",
                             self.epub.read())
 
+            for highlight in self.highlights:
+                zf.writestr(f"{self.ID}.highlights/{highlight.page_id}.json",
+                            json.dumps(highlight.highlight_data))
+
             for page in self.rm:
 
                 zf.writestr(f"{self.ID}/{page.order}.rm",
@@ -315,6 +350,14 @@ class ZipDocument(object):
                     self.epub = BytesIO(epub.read())
             except KeyError:
                 pass
+
+            # Get Highlights
+            highlights = [x for x in zf.namelist()
+                     if x.startswith(f"{self.ID}.highlights/") and x.endswith('.json')]
+            for highlight in highlights:
+                with zf.open(highlight, 'r') as highlight_fp:
+                    page_id = highlight.replace(f"{self.ID}.highlights/", "").replace(".json", "")
+                    self.highlights.append(Highlight(page_id, highlight_fp.read()))
 
             # Get the RM pages
             pages = [x for x in zf.namelist()
