@@ -17,6 +17,7 @@ from .const import (RFC3339Nano,
                     BASE_URL,
                     DEVICE_TOKEN_URL,
                     USER_TOKEN_URL,
+                    SERVICE_MGR_URL,
                     DEVICE,)
 
 log = getLogger("rmapy")
@@ -35,12 +36,25 @@ class Client(object):
         "usertoken": ""
     }
 
+    base_url = None
+
     def __init__(self):
         config = load()
         if "devicetoken" in config:
             self.token_set["devicetoken"] = config["devicetoken"]
         if "usertoken" in config:
             self.token_set["usertoken"] = config["usertoken"]
+
+    def get_base_url(self) -> str:
+        """Query the service url to get the latest document storage url"""
+        if self.base_url:
+            return self.base_url
+
+        response = self.request("GET", SERVICE_MGR_URL + "/service/json/1/blob-storage?environment=production&apiVer=1")
+
+        if response.ok:
+            self.base_url = response.json()["Host"]
+            return self.base_url
 
     def request(self, method: str, path: str,
                 data=None,
@@ -163,6 +177,18 @@ class Client(object):
         else:
             return False
 
+    def get_url_response(self, relative_path):
+        root_url_response = self.request("POST", self.base_url + "/api/v1/signed-urls/downloads", data=None,
+                                         body={"http_method": "GET", "relative_path": relative_path})
+        root_url = root_url_response.json()["url"]
+        return self.request("GET", root_url)
+
+    def get_root_dir(self):
+        """Request the root directory"""
+        self.get_base_url()
+        root = self.get_url_response("root")
+        return self.get_url_response(root.text)
+
     def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
 
@@ -173,12 +199,21 @@ class Client(object):
             Collection: a collection of Documents & Folders from the Remarkable
                 Cloud
         """
-
-        response = self.request("GET", "/document-storage/json/2/docs")
+        response = self.get_root_dir()
         collection = Collection()
+
         log.debug(response.text)
-        for item in response.json():
-            collection.add(item)
+        for item in list(response.iter_lines())[1:]:
+            item_id = item.split(b":")[0].decode("utf-8")
+            r = self.get_url_response(item_id)
+            for sub_item in r.iter_lines():
+                sub_item_decoded = sub_item.decode("utf-8")
+                if ".metadata" in sub_item_decoded:
+                    meta_id = sub_item_decoded.split(":")[0]
+                    continue
+
+            meta_response = self.get_url_response(meta_id)
+            collection.add(meta_response.json())
 
         return collection
 

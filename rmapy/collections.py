@@ -30,9 +30,9 @@ class Collection(object):
             doc_dict: A dict representing a document or folder.
         """
 
-        if doc_dict.get("Type", None) == "DocumentType":
+        if doc_dict.get("type", None) == "DocumentType":
             self.add_document(doc_dict)
-        elif doc_dict.get("Type", None) == "CollectionType":
+        elif doc_dict.get("type", None) == "CollectionType":
             self.add_folder(doc_dict)
         else:
             raise TypeError("Unsupported type: {_type}"
