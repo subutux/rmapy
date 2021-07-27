@@ -15,10 +15,10 @@ class Meta(object):
         ModifiedClient: When the last change was by the client.
         Type: Currently there are only 2 known types: DocumentType &
             CollectionType.
-        VissibleName: The human name of the object.
+        visibleName: The human name of the object.
         CurrentPage: The current selected page of the object.
         Bookmarked: If the object is bookmarked.
-        Parent: If empty, this object is is the root folder. This can be an ID
+        parent: If empty, this object is is the root folder. This can be an ID
             of a CollectionType.
 
     """
@@ -32,11 +32,11 @@ class Meta(object):
     BlobURLPut = ""
     BlobURLPutExpires = ""
     ModifiedClient = ""
-    Type = ""
-    VissibleName = ""
+    type = ""
+    visibleName = ""
     CurrentPage = 1
     Bookmarked = False
-    Parent = ""
+    parent = ""
 
     def __init__(self, **kwargs):
         k_keys = self.to_dict().keys()
@@ -62,10 +62,10 @@ class Meta(object):
             "BlobURLPut": self.BlobURLPut,
             "BlobURLPutExpires": self.BlobURLPutExpires,
             "ModifiedClient": self.ModifiedClient,
-            "Type": self.Type,
-            "VissibleName": self.VissibleName,
+            "type": self.type,
+            "visibleName": self.visibleName,
             "CurrentPage": self.CurrentPage,
             "Bookmarked": self.Bookmarked,
-            "Parent": self.Parent
+            "parent": self.parent
         }
 

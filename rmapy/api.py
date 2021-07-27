@@ -1,27 +1,79 @@
-import requests
-from logging import getLogger
 from datetime import datetime
+from logging import getLogger
 from typing import Union, Optional
 from uuid import uuid4
+from pathlib import Path
+
+import requests
+
 from .collections import Collection
-from .config import load, dump
-from .document import Document, ZipDocument, from_request_stream
-from .folder import Folder
-from .exceptions import (
-    AuthError,
-    DocumentNotFound,
-    ApiError,
-    UnsupportedTypeError,)
+from .config import load, dump, config_cloudstatus_path
 from .const import (RFC3339Nano,
                     USER_AGENT,
                     BASE_URL,
                     DEVICE_TOKEN_URL,
                     USER_TOKEN_URL,
                     SERVICE_MGR_URL,
-                    DEVICE,)
+                    DEVICE, )
+from .document import Document, ZipDocument, from_request_stream
+from .exceptions import (
+    AuthError,
+    DocumentNotFound,
+    ApiError,
+    UnsupportedTypeError, )
+from .folder import Folder
 
 log = getLogger("rmapy")
 DocumentOrFolder = Union[Document, Folder]
+
+
+class CloudStatus(object):
+    """Representation of the status report of the Remarkable Cloud
+
+    """
+
+    def __init__(self, raw_cloudstatus: str) -> None:
+        self._raw_cloudstatus: str = ""
+        self._old_cloudstatus: str = ""
+        self.ID_dict: dict = {}
+        self.ID_dict_old: dict = {}
+        self.update(raw_cloudstatus)
+
+    @staticmethod
+    def load() -> str:
+        cloudstatus = "\n\n"
+        if Path.exists(config_cloudstatus_path):
+            with open(config_cloudstatus_path, "r") as f:
+                cloudstatus = f.read()
+
+        return cloudstatus
+
+    def dump(self) -> None:
+        with open(config_cloudstatus_path, 'w') as f:
+            f.write(self._raw_cloudstatus)
+
+    @staticmethod
+    def get_item_dict(cloudstatus: str) -> dict:
+        item_dict: dict = {}
+        for item in cloudstatus.split("\n")[1:-1]:
+            item_list = item.split(":")
+            cloud_id = item_list[0]
+            file_id = item_list[2]
+            item_dict[file_id] = cloud_id
+
+        return item_dict
+
+    def update(self, raw_cloudstatus: str) -> None:
+        self._raw_cloudstatus = raw_cloudstatus
+        self._old_cloudstatus = self.load()
+        self.dump()
+
+        self.ID_dict: dict = self.get_item_dict(self._raw_cloudstatus)
+        self.ID_dict_old: dict = self.get_item_dict(self._old_cloudstatus)
+
+    def get_new_and_updated(self, downloaded: list) -> dict:
+        return {key: val for key, val in self.ID_dict.items() if
+                key not in self.ID_dict_old or self.ID_dict_old[key] != val or key not in downloaded}
 
 
 class Client(object):
@@ -155,8 +207,8 @@ class Client(object):
             raise AuthError("Please register a device first")
         token = self.token_set["devicetoken"]
         response = self.request("POST", USER_TOKEN_URL, None, headers={
-                "Authorization": f"Bearer {token}"
-            })
+            "Authorization": f"Bearer {token}"
+        })
         if response.ok:
             self.token_set["usertoken"] = response.text
             dump(self.token_set)
@@ -187,7 +239,7 @@ class Client(object):
         """Request the root directory"""
         self.get_base_url()
         root = self.get_url_response("root")
-        return self.get_url_response(root.text)
+        return self.get_url_response(root.text).text
 
     def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
@@ -199,21 +251,25 @@ class Client(object):
             Collection: a collection of Documents & Folders from the Remarkable
                 Cloud
         """
-        response = self.get_root_dir()
+        cloudstatus = CloudStatus(self.get_root_dir())
         collection = Collection()
+        collection.load()
+        residuals = cloudstatus.get_new_and_updated([item["ID"] for item in collection.to_list()])
 
-        log.debug(response.text)
-        for item in list(response.iter_lines())[1:]:
-            item_id = item.split(b":")[0].decode("utf-8")
-            r = self.get_url_response(item_id)
+        for meta_id, cloud_id in residuals.items():
+            r = self.get_url_response(cloud_id)
             for sub_item in r.iter_lines():
                 sub_item_decoded = sub_item.decode("utf-8")
                 if ".metadata" in sub_item_decoded:
-                    meta_id = sub_item_decoded.split(":")[0]
-                    continue
+                    meta_cloud_id = sub_item_decoded.split(":")[0]
+                    break
 
-            meta_response = self.get_url_response(meta_id)
-            collection.add(meta_response.json())
+            meta_response = self.get_url_response(meta_cloud_id)
+            meta_data = meta_response.json()
+            meta_data['ID'] = meta_id
+            collection.add(meta_data)
+
+        collection.dump()
 
         return collection
 
@@ -242,9 +298,9 @@ class Client(object):
         log.debug(data_response)
 
         if len(data_response) > 0:
-            if data_response[0]["Type"] == "CollectionType":
+            if data_response[0]["type"] == "CollectionType":
                 return Folder(**data_response[0])
-            elif data_response[0]["Type"] == "DocumentType":
+            elif data_response[0]["type"] == "DocumentType":
                 return Document(**data_response[0])
         else:
             raise DocumentNotFound(f"Could not find document {_id}")
@@ -272,7 +328,7 @@ class Client(object):
             else:
                 raise UnsupportedTypeError(
                     "We expected a document, got {type}"
-                    .format(type=type(doc)))
+                        .format(type=type(doc)))
         log.debug("BLOB", document.BlobURLGet)
         r = self.request("GET", document.BlobURLGet, stream=True)
         return from_request_stream(document.ID, r)
@@ -315,7 +371,7 @@ class Client(object):
         if response.ok:
             doc = Document(**zip_doc.metadata)
             doc.ID = zip_doc.ID
-            doc.Parent = to.ID
+            doc.parent = to.ID
             return self.update_metadata(doc)
         else:
             raise ApiError("an error occured while uploading the document.",
@@ -369,8 +425,8 @@ class Client(object):
                            body=[req])
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)
@@ -401,8 +457,8 @@ class Client(object):
                            body=[req])
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)
