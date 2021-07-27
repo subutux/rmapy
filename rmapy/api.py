@@ -132,12 +132,6 @@ class Client(object):
 
         if headers is None:
             headers = {}
-        if not path.startswith("http"):
-            if not path.startswith('/'):
-                path = '/' + path
-            url = f"{BASE_URL}{path}"
-        else:
-            url = path
 
         _headers = {
             "user-agent": USER_AGENT,
@@ -148,8 +142,8 @@ class Client(object):
             _headers["Authorization"] = f"Bearer {token}"
         for k in headers.keys():
             _headers[k] = headers[k]
-        log.debug(url, _headers)
-        r = requests.request(method, url,
+        log.debug(path, _headers)
+        r = requests.request(method, path,
                              json=body,
                              data=data,
                              headers=_headers,
@@ -252,9 +246,9 @@ class Client(object):
                 Cloud
         """
         cloudstatus = CloudStatus(self.get_root_dir())
-        collection = Collection()
-        collection.load()
-        residuals = cloudstatus.get_new_and_updated([item["ID"] for item in collection.to_list()])
+        self._collection = Collection()
+        self._collection.load()
+        residuals = cloudstatus.get_new_and_updated([item["ID"] for item in self._collection.to_list()])
 
         for meta_id, cloud_id in residuals.items():
             r = self.get_url_response(cloud_id)
@@ -267,11 +261,13 @@ class Client(object):
             meta_response = self.get_url_response(meta_cloud_id)
             meta_data = meta_response.json()
             meta_data['ID'] = meta_id
-            collection.add(meta_data)
+            meta_data['cloud_id'] = cloud_id
+            meta_data['meta_cloud_id'] = meta_cloud_id
+            self._collection.add(meta_data)
 
-        collection.dump()
+        self._collection.dump()
 
-        return collection
+        return self._collection
 
     def get_doc(self, _id: str) -> Optional[DocumentOrFolder]:
         """Get a meta item by ID
@@ -288,23 +284,12 @@ class Client(object):
         """
 
         log.debug(f"GETTING DOC {_id}")
-        response = self.request("GET", "/document-storage/json/2/docs",
-                                params={
-                                    "doc": _id,
-                                    "withBlob": True
-                                })
-        log.debug(response.url)
-        data_response = response.json()
-        log.debug(data_response)
+        data_response = [item for item in self.get_meta_items() if item.ID == _id]
 
         if len(data_response) > 0:
-            if data_response[0]["type"] == "CollectionType":
-                return Folder(**data_response[0])
-            elif data_response[0]["type"] == "DocumentType":
-                return Document(**data_response[0])
+            return data_response[0]
         else:
             raise DocumentNotFound(f"Could not find document {_id}")
-        return None
 
     def download(self, document: Document) -> ZipDocument:
         """Download a ZipDocument
@@ -388,8 +373,8 @@ class Client(object):
         """
 
         req = docorfolder.to_dict()
-        req["Version"] = self.get_current_version(docorfolder) + 1
-        req["ModifiedClient"] = datetime.utcnow().strftime(RFC3339Nano)
+        req["version"] = self.get_current_version(docorfolder) + 1
+        req["lastModified"] = datetime.utcnow().strftime(RFC3339Nano)
         res = self.request("PUT",
                            "/document-storage/json/2/upload/update-status",
                            body=[req])
@@ -417,12 +402,12 @@ class Client(object):
             return 0
         if not d:
             return 0
-        return int(d.Version)
+        return int(d.version)
 
     def _upload_request(self, zip_doc: ZipDocument) -> str:
         zip_file, req = zip_doc.create_request()
-        res = self.request("PUT", "/document-storage/json/2/upload/request",
-                           body=[req])
+        res = self.request("POST", self.base_url + "/api/v1/signed-urls/uploads", data=None,
+                                         body={"http_method": "PUT", "relative_path": zip_doc.ID})
         if not res.ok:
             raise ApiError(
                 f"upload request failed with status {res.status_code}",
