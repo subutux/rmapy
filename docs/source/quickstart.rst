@@ -7,7 +7,7 @@ are re-used because we use the same storage location & format.
 If not, you'll need to register the client as a new device on `my remarkable`_.
 
 
-.. _my remarkable: https://my.remarkable.com/connect/remarkable
+.. _my remarkable: https://my.remarkable.com/device/desktop/connect
 
 .. _rmapi: https://github.com/juruen/rmapi
 
