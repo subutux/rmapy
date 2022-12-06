@@ -7,7 +7,7 @@ are re-used because we use the same storage location & format.
 If not, you'll need to register the client as a new device on `my remarkable`_.
 
 
-.. _my remarkable: https://my.remarkable.com/connect/remarkable
+.. _my remarkable: https://my.remarkable.com/device/desktop/connect
 
 .. _rmapi: https://github.com/juruen/rmapi
 
@@ -30,6 +30,7 @@ and use the code you see on the webpage
     # This registers the client as a new device. The received device token is
     # stored in the users directory in the file ~/.rmapi, the same as with the
     # go rmapi client.
+    # Get a token at https://my.remarkable.com/device/desktop/connect.
     rmapy.register_device("fkgzzklrs")
     # It's always a good idea to renew the user token every time you start
     # a new session.
