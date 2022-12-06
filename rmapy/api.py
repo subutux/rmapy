@@ -95,12 +95,12 @@ class Client(object):
         """Registers a device on the Remarkable Cloud.
 
         This uses a unique code the user gets from
-        https://my.remarkable.com/connect/remarkable to register a new device
-        or client to be able to execute api calls.
+        https://my.remarkable.com/device/desktop/connect to register
+        a new device or client to be able to execute api calls.
 
         Args:
             code: A unique One time code the user can get
-                at https://my.remarkable.com/connect/remarkable .
+                at https://my.remarkable.com/device/desktop/connect.
         Returns:
             True
         Raises:
