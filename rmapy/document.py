@@ -87,17 +87,17 @@ class Document(Meta):
         ModifiedClient: When the last change was by the client.
         Type: Currently there are only 2 known types: DocumentType &
             CollectionType.
-        VissibleName: The human name of the object.
+        visibleName: The human name of the object.
         CurrentPage: The current selected page of the object.
         Bookmarked: If the object is bookmarked.
-        Parent: If empty, this object is is the root folder. This can be an ID
+        parent: If empty, this object is is the root folder. This can be an ID
             of a CollectionType.
 
     """
 
     def __init__(self, **kwargs):
         super(Document, self).__init__(**kwargs)
-        self.Type = "DocumentType"
+        self.type = "DocumentType"
 
     def __str__(self):
         """String representation of this object"""
@@ -206,7 +206,7 @@ class ZipDocument(object):
             "synced": True,
             "type": "DocumentType",
             "version": 1,
-            "VissibleName": "New Document"
+            "visibleName": "New Document"
         }
 
         self.pagedata = "b''"
@@ -241,7 +241,7 @@ class ZipDocument(object):
                 with open(doc, 'rb') as fb:
                     self.rm.append(RmPage(page=BytesIO(fb.read())))
             name = os.path.splitext(os.path.basename(doc))[0]
-            self.metadata["VissibleName"] = name
+            self.metadata["visibleName"] = name
 
         if file:
             self.load(file)
@@ -257,7 +257,7 @@ class ZipDocument(object):
     def create_request(self) -> Tuple[BytesIO, dict]:
         return self.zipfile, {
             "ID": self.ID,
-            "Type": "DocumentType",
+            "type": "DocumentType",
             "Version": self.metadata["version"]
         }
 

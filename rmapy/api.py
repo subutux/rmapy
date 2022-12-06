@@ -1,26 +1,79 @@
-import requests
-from logging import getLogger
 from datetime import datetime
+from logging import getLogger
 from typing import Union, Optional
 from uuid import uuid4
+from pathlib import Path
+
+import requests
+
 from .collections import Collection
-from .config import load, dump
-from .document import Document, ZipDocument, from_request_stream
-from .folder import Folder
-from .exceptions import (
-    AuthError,
-    DocumentNotFound,
-    ApiError,
-    UnsupportedTypeError,)
+from .config import load, dump, config_cloudstatus_path
 from .const import (RFC3339Nano,
                     USER_AGENT,
                     BASE_URL,
                     DEVICE_TOKEN_URL,
                     USER_TOKEN_URL,
-                    DEVICE,)
+                    SERVICE_MGR_URL,
+                    DEVICE, )
+from .document import Document, ZipDocument, from_request_stream
+from .exceptions import (
+    AuthError,
+    DocumentNotFound,
+    ApiError,
+    UnsupportedTypeError, )
+from .folder import Folder
 
 log = getLogger("rmapy")
 DocumentOrFolder = Union[Document, Folder]
+
+
+class CloudStatus(object):
+    """Representation of the status report of the Remarkable Cloud
+
+    """
+
+    def __init__(self, raw_cloudstatus: str) -> None:
+        self._raw_cloudstatus: str = ""
+        self._old_cloudstatus: str = ""
+        self.ID_dict: dict = {}
+        self.ID_dict_old: dict = {}
+        self.update(raw_cloudstatus)
+
+    @staticmethod
+    def load() -> str:
+        cloudstatus = "\n\n"
+        if Path.exists(config_cloudstatus_path):
+            with open(config_cloudstatus_path, "r") as f:
+                cloudstatus = f.read()
+
+        return cloudstatus
+
+    def dump(self) -> None:
+        with open(config_cloudstatus_path, 'w') as f:
+            f.write(self._raw_cloudstatus)
+
+    @staticmethod
+    def get_item_dict(cloudstatus: str) -> dict:
+        item_dict: dict = {}
+        for item in cloudstatus.split("\n")[1:-1]:
+            item_list = item.split(":")
+            cloud_id = item_list[0]
+            file_id = item_list[2]
+            item_dict[file_id] = cloud_id
+
+        return item_dict
+
+    def update(self, raw_cloudstatus: str) -> None:
+        self._raw_cloudstatus = raw_cloudstatus
+        self._old_cloudstatus = self.load()
+        self.dump()
+
+        self.ID_dict: dict = self.get_item_dict(self._raw_cloudstatus)
+        self.ID_dict_old: dict = self.get_item_dict(self._old_cloudstatus)
+
+    def get_new_and_updated(self, downloaded: list) -> dict:
+        return {key: val for key, val in self.ID_dict.items() if
+                key not in self.ID_dict_old or self.ID_dict_old[key] != val or key not in downloaded}
 
 
 class Client(object):
@@ -35,12 +88,25 @@ class Client(object):
         "usertoken": ""
     }
 
+    base_url = None
+
     def __init__(self):
         config = load()
         if "devicetoken" in config:
             self.token_set["devicetoken"] = config["devicetoken"]
         if "usertoken" in config:
             self.token_set["usertoken"] = config["usertoken"]
+
+    def get_base_url(self) -> str:
+        """Query the service url to get the latest document storage url"""
+        if self.base_url:
+            return self.base_url
+
+        response = self.request("GET", SERVICE_MGR_URL + "/service/json/1/blob-storage?environment=production&apiVer=1")
+
+        if response.ok:
+            self.base_url = response.json()["Host"]
+            return self.base_url
 
     def request(self, method: str, path: str,
                 data=None,
@@ -66,12 +132,6 @@ class Client(object):
 
         if headers is None:
             headers = {}
-        if not path.startswith("http"):
-            if not path.startswith('/'):
-                path = '/' + path
-            url = f"{BASE_URL}{path}"
-        else:
-            url = path
 
         _headers = {
             "user-agent": USER_AGENT,
@@ -82,8 +142,8 @@ class Client(object):
             _headers["Authorization"] = f"Bearer {token}"
         for k in headers.keys():
             _headers[k] = headers[k]
-        log.debug(url, _headers)
-        r = requests.request(method, url,
+        log.debug(path, _headers)
+        r = requests.request(method, path,
                              json=body,
                              data=data,
                              headers=_headers,
@@ -141,8 +201,8 @@ class Client(object):
             raise AuthError("Please register a device first")
         token = self.token_set["devicetoken"]
         response = self.request("POST", USER_TOKEN_URL, None, headers={
-                "Authorization": f"Bearer {token}"
-            })
+            "Authorization": f"Bearer {token}"
+        })
         if response.ok:
             self.token_set["usertoken"] = response.text
             dump(self.token_set)
@@ -163,6 +223,18 @@ class Client(object):
         else:
             return False
 
+    def get_url_response(self, relative_path):
+        root_url_response = self.request("POST", self.base_url + "/api/v1/signed-urls/downloads", data=None,
+                                         body={"http_method": "GET", "relative_path": relative_path})
+        root_url = root_url_response.json()["url"]
+        return self.request("GET", root_url)
+
+    def get_root_dir(self):
+        """Request the root directory"""
+        self.get_base_url()
+        root = self.get_url_response("root")
+        return self.get_url_response(root.text).text
+
     def get_meta_items(self) -> Collection:
         """Returns a new collection from meta items.
 
@@ -173,14 +245,29 @@ class Client(object):
             Collection: a collection of Documents & Folders from the Remarkable
                 Cloud
         """
+        cloudstatus = CloudStatus(self.get_root_dir())
+        self._collection = Collection()
+        self._collection.load()
+        residuals = cloudstatus.get_new_and_updated([item["ID"] for item in self._collection.to_list()])
 
-        response = self.request("GET", "/document-storage/json/2/docs")
-        collection = Collection()
-        log.debug(response.text)
-        for item in response.json():
-            collection.add(item)
+        for meta_id, cloud_id in residuals.items():
+            r = self.get_url_response(cloud_id)
+            for sub_item in r.iter_lines():
+                sub_item_decoded = sub_item.decode("utf-8")
+                if ".metadata" in sub_item_decoded:
+                    meta_cloud_id = sub_item_decoded.split(":")[0]
+                    break
 
-        return collection
+            meta_response = self.get_url_response(meta_cloud_id)
+            meta_data = meta_response.json()
+            meta_data['ID'] = meta_id
+            meta_data['cloud_id'] = cloud_id
+            meta_data['meta_cloud_id'] = meta_cloud_id
+            self._collection.add(meta_data)
+
+        self._collection.dump()
+
+        return self._collection
 
     def get_doc(self, _id: str) -> Optional[DocumentOrFolder]:
         """Get a meta item by ID
@@ -197,23 +284,12 @@ class Client(object):
         """
 
         log.debug(f"GETTING DOC {_id}")
-        response = self.request("GET", "/document-storage/json/2/docs",
-                                params={
-                                    "doc": _id,
-                                    "withBlob": True
-                                })
-        log.debug(response.url)
-        data_response = response.json()
-        log.debug(data_response)
+        data_response = [item for item in self.get_meta_items() if item.ID == _id]
 
         if len(data_response) > 0:
-            if data_response[0]["Type"] == "CollectionType":
-                return Folder(**data_response[0])
-            elif data_response[0]["Type"] == "DocumentType":
-                return Document(**data_response[0])
+            return data_response[0]
         else:
             raise DocumentNotFound(f"Could not find document {_id}")
-        return None
 
     def download(self, document: Document) -> ZipDocument:
         """Download a ZipDocument
@@ -237,7 +313,7 @@ class Client(object):
             else:
                 raise UnsupportedTypeError(
                     "We expected a document, got {type}"
-                    .format(type=type(doc)))
+                        .format(type=type(doc)))
         log.debug("BLOB", document.BlobURLGet)
         r = self.request("GET", document.BlobURLGet, stream=True)
         return from_request_stream(document.ID, r)
@@ -280,7 +356,7 @@ class Client(object):
         if response.ok:
             doc = Document(**zip_doc.metadata)
             doc.ID = zip_doc.ID
-            doc.Parent = to.ID
+            doc.parent = to.ID
             return self.update_metadata(doc)
         else:
             raise ApiError("an error occured while uploading the document.",
@@ -297,8 +373,8 @@ class Client(object):
         """
 
         req = docorfolder.to_dict()
-        req["Version"] = self.get_current_version(docorfolder) + 1
-        req["ModifiedClient"] = datetime.utcnow().strftime(RFC3339Nano)
+        req["version"] = self.get_current_version(docorfolder) + 1
+        req["lastModified"] = datetime.utcnow().strftime(RFC3339Nano)
         res = self.request("PUT",
                            "/document-storage/json/2/upload/update-status",
                            body=[req])
@@ -326,16 +402,16 @@ class Client(object):
             return 0
         if not d:
             return 0
-        return int(d.Version)
+        return int(d.version)
 
     def _upload_request(self, zip_doc: ZipDocument) -> str:
         zip_file, req = zip_doc.create_request()
-        res = self.request("PUT", "/document-storage/json/2/upload/request",
-                           body=[req])
+        res = self.request("POST", self.base_url + "/api/v1/signed-urls/uploads", data=None,
+                                         body={"http_method": "PUT", "relative_path": zip_doc.ID})
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)
@@ -366,8 +442,8 @@ class Client(object):
                            body=[req])
         if not res.ok:
             raise ApiError(
-                     f"upload request failed with status {res.status_code}",
-                     response=res)
+                f"upload request failed with status {res.status_code}",
+                response=res)
         response = res.json()
         if len(response) > 0:
             dest = response[0].get("BlobURLPut", None)

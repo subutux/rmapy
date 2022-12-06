@@ -89,25 +89,25 @@ Changing the metadata is easy
     >>> rmapy.renew_token()
     True
     >>> collection = rmapy.get_meta_items()
-    >>> doc = [ d for d in collection if d.VissibleName == 'ModernC'][0]
+    >>> doc = [ d for d in collection if d.visibleName == 'ModernC'][0]
     >>> doc
     <rmapy.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
     >>> doc.to_dict()
-    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'ModernC', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
-    >>> doc.VissibleName = "Modern C: The book of wisdom"
+    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'visibleName': 'ModernC', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
+    >>> doc.visibleName = "Modern C: The book of wisdom"
     >>> # push the changes back to the Remarkable Cloud
     ... rmapy.update_metadata(doc)
     True
     >>> collection = rmapy.get_meta_items()
-    >>> doc = [ d for d in docs if d.VissibleName == 'ModernC'][0]
+    >>> doc = [ d for d in docs if d.visibleName == 'ModernC'][0]
     Traceback (most recent call last):
       File "<stdin>", line 1, in <module>
     IndexError: list index out of range
-    >>> doc = [ d for d in docs if d.VissibleName == 'Modern C: The book of wisdom'][0]
+    >>> doc = [ d for d in docs if d.visibleName == 'Modern C: The book of wisdom'][0]
     >>> doc
     <rmapy.document.Document a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3>
     >>> doc.to_dict()
-    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'VissibleName': 'Modern C: The book of wisdom', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
+    {'ID': 'a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3', 'Version': 1, 'Message': '', 'Succes': True, 'BlobURLGet': '', 'BlobURLGetExpires': '0001-01-01T00:00:00Z', 'BlobURLPut': '', 'BlobURLPutExpires': '', 'ModifiedClient': '2019-09-18T20:12:07.206206Z', 'Type': 'DocumentType', 'visibleName': 'Modern C: The book of wisdom', 'CurrentPage': 0, 'Bookmarked': False, 'Parent': ''}
 
 
 CollectionType
@@ -146,9 +146,9 @@ Working with folders is easy!
     >>> rmapy.create_folder(new_folder)
     True
     >>> # verify
-    ... [ f for f in rmapy.get_meta_items() if f.VissibleName == "New Folder" ]
+    ... [ f for f in rmapy.get_meta_items() if f.visibleName == "New Folder" ]
     [<rmapy.folder.Folder 579df08d-7ee4-4f30-9994-887e6341cae3>]
-    >>> [ f for f in rmapy.get_meta_items() if f.VissibleName == "New Folder" ][0].ID == new_folder.ID
+    >>> [ f for f in rmapy.get_meta_items() if f.visibleName == "New Folder" ][0].ID == new_folder.ID
     True
     >>> # Move a document in a folder
     ... doc = rmapy.get_doc("a969fcd6-64b0-4f71-b1ce-d9533ec4a2a3")
@@ -205,7 +205,7 @@ the remarkable file format:
     >>> rawDocument = ZipDocument(doc="/home/svancampenhout/27-11-2019.pdf")
     >>> rawDocument
     <rmapy.document.ZipDocument b926ffc2-3600-460e-abfa-0fcf20b0bf99>
-    >>> rawDocument.metadata["VissibleName"]
+    >>> rawDocument.metadata["visibleName"]
     '27-11-2019'
 
 Now we can upload this to a specific folder:
@@ -214,7 +214,7 @@ Now we can upload this to a specific folder:
    :linenos:
 
 
-    >>> books = [ i for i in rm.get_meta_items() if i.VissibleName == "Boeken" ][0]
+    >>> books = [ i for i in rm.get_meta_items() if i.visibleName == "Boeken" ][0]
     >>> rm.upload(rawDocument, books)
     True
 
@@ -223,6 +223,6 @@ And verify its existance:
 .. code-block:: python
    :linenos:
 
-    >>> [ i.VissibleName for i in collection.children(books) if i.Type == "DocumentType" ]
+    >>> [ i.visibleName for i in collection.children(books) if i.type == "DocumentType" ]
     ['Origin - Dan Brown', 'Flatland', 'Game Of Thrones', '27-11-2019']
 

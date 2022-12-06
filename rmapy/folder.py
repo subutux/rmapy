@@ -42,9 +42,9 @@ class Folder(Meta):
         """
 
         super(Folder, self).__init__(**kwargs)
-        self.Type = "CollectionType"
+        self.type = "CollectionType"
         if name:
-            self.VissibleName = name
+            self.visibleName = name
         if not self.ID:
             self.ID = str(uuid4())
 
@@ -57,7 +57,7 @@ class Folder(Meta):
 
         return ZipFolder(self.ID).file, {
             "ID": self.ID,
-            "Type": "CollectionType",
+            "type": "CollectionType",
             "Version": 1
         }
 

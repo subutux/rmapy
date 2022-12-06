@@ -5,10 +5,14 @@ from yaml import dump as yml_dump
 from typing import Dict
 
 
+config_path = Path.joinpath(Path.home(), ".rmapi")
+config_file_path = Path.joinpath(config_path, 'config')
+config_cloudstatus_path = Path.joinpath(config_path, 'cloud')
+config_meta_path = Path.joinpath(config_path, 'meta')
+
+
 def load() -> dict:
     """Load the .rmapy config file"""
-
-    config_file_path = Path.joinpath(Path.home(), ".rmapi")
     config: Dict[str, str] = {}
     if Path.exists(config_file_path):
         with open(config_file_path, 'r') as config_file:
@@ -24,9 +28,7 @@ def dump(config: dict) -> None:
         config: A dict containing data to dump to the .rmapi
             config file.
     """
-
-    config_file_path = Path.joinpath(Path.home(), ".rmapi")
-
+    Path(config_path).mkdir(parents=True, exist_ok=True)
     with open(config_file_path, 'w') as config_file:
         config_file.write(yml_dump(config))
 
