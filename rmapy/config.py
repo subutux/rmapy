@@ -11,7 +11,16 @@ def load() -> dict:
     config_file_path = Path.joinpath(Path.home(), ".rmapi")
     config: Dict[str, str] = {}
     if Path.exists(config_file_path):
-        with open(config_file_path, 'r') as config_file:
+        with open(config_file_path, "r") as config_file:
+            config = dict(yml_load(config_file.read(), Loader=BaseLoader))
+    # ~/Library/Application\ Support/rmapi/rmapi.conf
+    elif Path.exists(
+        Path.joinpath(Path.home(), "Library/Application Support/rmapi/rmapi.conf")
+    ):
+        config_file_path = Path.joinpath(
+            Path.home(), "Library/Application Support/rmapi/rmapi.conf"
+        )
+        with open(config_file_path, "r") as config_file:
             config = dict(yml_load(config_file.read(), Loader=BaseLoader))
 
     return config
@@ -27,7 +36,5 @@ def dump(config: dict) -> None:
 
     config_file_path = Path.joinpath(Path.home(), ".rmapi")
 
-    with open(config_file_path, 'w') as config_file:
+    with open(config_file_path, "w") as config_file:
         config_file.write(yml_dump(config))
-
-
